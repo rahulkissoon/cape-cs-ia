@@ -122,7 +122,7 @@ void view_clubs()
         clear_console();
         if (club_count == 0)
         {
-            printf("No clubs have yet been registered. Press [1] on the main menu to register a club. ");
+            printf("No clubs have yet been registered. ");
             return prompt_return_to_main_menu();
         }
 
@@ -166,7 +166,78 @@ void view_clubs()
 
         printf("Press [Backspace] at any time to return to the previous menu.");
         char user_input = 0;
-        while (user_input != 8)
+        while (user_input != BACKSPACE_ASCII_CODE)
+        {
+            user_input = _getch();
+        };
+    }
+}
+
+void delete_club()
+{
+    while (1)
+    {
+        clear_console();
+        if (club_count == 0)
+        {
+            printf("There are no registered clubs to be deleted. ");
+            return prompt_return_to_main_menu();
+        }
+
+        printf("Type in the number indicated in brackets preceding the name and then press [Enter] to delete the club. Alternatively, enter \"0\" to return to the main menu.\n\n");
+        for (int i = 0; i < club_count; i++)
+        {
+            struct Club club = clubs[i];
+            printf("[%d] %s\n", i + 1, club.name);
+        }
+        printf("\n");
+
+        int club_no = -1;
+        while (1)
+        {
+            char user_input[5];
+            fgets(user_input, sizeof(user_input), stdin);
+            if (user_input[0] == '0')
+            {
+                break;
+            }
+
+            club_no = atoi(user_input);
+            if (club_no <= club_count && club_no != 0)
+            {
+                break;
+            }
+        }
+        if (club_no == -1)
+        {
+            break;
+        }
+
+        struct Club club = clubs[club_no - 1];
+        clear_console();
+        printf("Please confirm whether you would like to permanently delete '%s'. (y/n)\n", club.name);
+        printf("Warning: This is an irreversible action. All data associated with '%s' will be irrecoverably lost.\n", club.name);
+        char confirmation = _getch();
+        if (tolower(confirmation) != 'y')
+        {
+            break;
+        }
+        if (club_count > club_no)
+        {
+            for (int i = club_no - 1; i < club_count - 1; i++)
+            {
+                clubs[i] = clubs[i + 1];
+            }
+        }
+        struct Club placeholder_club = {0};
+        clubs[club_count - 1] = placeholder_club;
+        club_count -= 1;
+        save_data_to_file();
+
+        clear_console();
+        printf("Successfully deleted '%s'. Press [Backspace] at any time to return to the previous menu.", club.name);
+        char user_input = 0;
+        while (user_input != BACKSPACE_ASCII_CODE)
         {
             user_input = _getch();
         };

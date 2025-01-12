@@ -6,6 +6,8 @@
 #include <Windows.h>
 #include <stdlib.h>
 
+const int BACKSPACE_ASCII_CODE = 8;
+
 void clear_console()
 {
 #ifdef _WIN32
@@ -56,6 +58,7 @@ void show_main_menu()
             break;
         case '4':
             clear_console();
+            delete_club();
             break;
         case 'q':
             printf("\n\nQuitting program...");
@@ -69,7 +72,7 @@ void prompt_return_to_main_menu()
 {
     printf("Press [Backspace] at any time to return to the main menu.");
     char keyboard_input;
-    while (keyboard_input != 8)
+    while (keyboard_input != BACKSPACE_ASCII_CODE)
     {
         keyboard_input = _getch();
     };

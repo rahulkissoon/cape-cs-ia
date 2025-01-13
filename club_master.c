@@ -173,6 +173,158 @@ void view_clubs()
     }
 }
 
+void update_club()
+{
+    while (1)
+    {
+        clear_console();
+        if (club_count == 0)
+        {
+            printf("No clubs have yet been registered. ");
+            return prompt_return_to_main_menu();
+        }
+
+        printf("Type in the number indicated in brackets preceding the name and then press [Enter] to update the club's information. Alternatively, enter \"0\" to return to the main menu.\n\n");
+        for (int i = 0; i < club_count; i++)
+        {
+            struct Club club = clubs[i];
+            printf("[%d] %s\n", i + 1, club.name);
+        }
+        printf("\n");
+
+        int club_no = -1;
+        while (1)
+        {
+            char user_input[5];
+            fgets(user_input, sizeof(user_input), stdin);
+            if (user_input[0] == '0')
+            {
+                break;
+            }
+
+            club_no = atoi(user_input);
+            if (club_no <= club_count && club_no != 0)
+            {
+                break;
+            }
+        }
+        if (club_no == -1)
+        {
+            break;
+        }
+
+        while (1)
+        {
+            struct Club club = clubs[club_no - 1];
+            clear_console();
+            printf("Currently updating '%s' (%d/%d)...\n\n", club.name, club_no, club_count);
+            printf("Press the key (indicated in brackets) corresponding to one of the options presented below to continue.\n");
+            printf("[1] Name\n");
+            printf("[2] Weekly Meeting Day\n");
+            printf("[3] Student Representatives\n\n");
+            printf("Press [Backspace] at any time to return to the previous menu.");
+
+            char choice = _getch();
+            if (choice == BACKSPACE_ASCII_CODE)
+            {
+                break;
+            }
+            else
+            {
+                while (1)
+                {
+                    switch (choice)
+                    {
+                    case '1':
+                        clear_console();
+                        printf("After typing the new name for '%s', press [Enter] to confirm your choice.\n\n", club.name);
+                        char new_name[255] = "";
+                        while (new_name[0] == '\0')
+                        {
+                            fgets(new_name, sizeof(new_name), stdin);
+                            new_name[strlen(new_name) - 1] = '\0';
+                        }
+                        char old_name[155];
+                        strcpy(old_name, club.name);
+                        strcpy(club.name, new_name);
+                        clubs[club_no - 1] = club;
+                        save_data_to_file();
+                        clear_console();
+                        printf("Successfully updated the name of '%s' (previously '%s'). ", club.name, old_name);
+                        break;
+
+                    case '2':
+                        clear_console();
+                        printf("Choose a number corresponding to the desired weekday from the list presented below to update the weekly meeting day of '%s'.\n", club.name);
+                        printf("[1] Monday\n");
+                        printf("[2] Tuesday\n");
+                        printf("[3] Wednesday\n");
+                        printf("[4] Thursday\n");
+                        printf("[5] Friday\n");
+                        char old_weekly_meeting_day[9] = "";
+                        strcpy(old_weekly_meeting_day, club.weekly_meeting_day);
+                        char new_weekly_meeting_day = '\0';
+                        while (new_weekly_meeting_day == '\0')
+                        {
+                            new_weekly_meeting_day = _getch();
+                            switch (new_weekly_meeting_day)
+                            {
+                            case '1':
+                                strcpy(club.weekly_meeting_day, "Monday");
+                                break;
+                            case '2':
+                                strcpy(club.weekly_meeting_day, "Tuesday");
+                                break;
+                            case '3':
+                                strcpy(club.weekly_meeting_day, "Wednesday");
+                                break;
+                            case '4':
+                                strcpy(club.weekly_meeting_day, "Thursday");
+                                break;
+                            case '5':
+                                strcpy(club.weekly_meeting_day, "Friday");
+                                break;
+                            }
+                        }
+                        clubs[club_no - 1] = club;
+                        save_data_to_file();
+                        clear_console();
+                        printf("Successfully updated the weekly meeting day of '%s' from %s to %s. ", club.name, old_weekly_meeting_day, club.weekly_meeting_day);
+                        break;
+
+                    case '3':
+                        clear_console();
+                        printf("Enter the full names of the new student representatives of '%s' below. To confirm your choice, press [Enter].\n\n", club.name);
+                        char new_student_reps[1024] = "";
+                        while (new_student_reps[0] == '\0')
+                        {
+                            fgets(new_student_reps, sizeof(new_student_reps), stdin);
+                            new_student_reps[strlen(new_student_reps) - 1] = '\0';
+                        }
+                        strcpy(club.student_reps, new_student_reps);
+                        clubs[club_no - 1] = club;
+                        save_data_to_file();
+                        clear_console();
+                        printf("Successfully updated student representatives of '%s'. ", club.name);
+                        break;
+                    }
+
+                    if (choice == '1' || choice == '2' || choice == '3')
+                    {
+                        printf("Press [Backspace] at any time to return to the previous menu.");
+                        char user_input = 0;
+                        while (user_input != BACKSPACE_ASCII_CODE)
+                        {
+                            user_input = _getch();
+                        };
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void delete_club()
 {
     while (1)

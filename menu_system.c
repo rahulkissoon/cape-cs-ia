@@ -6,7 +6,7 @@
 #include <Windows.h>
 #include <stdlib.h>
 
-const int BACKSPACE_ASCII_CODE = 8;
+int const BACKSPACE_ASCII_CODE = 8;
 
 void clear_console()
 {
@@ -55,6 +55,7 @@ void show_main_menu()
             break;
         case '3':
             clear_console();
+            update_club();
             break;
         case '4':
             clear_console();

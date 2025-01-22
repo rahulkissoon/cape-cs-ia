@@ -1,12 +1,13 @@
-#include "club_master.h"
-#include "menu_system.h"
 #include <conio.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <Windows.h>
 #include <stdlib.h>
+#include "clubs.h"
+#include "menu_system.h"
+#include "students.h"
 
-int const BACKSPACE_ASCII_CODE = 8;
+const int BACKSPACE_ASCII_CODE = 8;
 
 void clear_console()
 {
@@ -17,29 +18,62 @@ void clear_console()
 #endif
 }
 
+void print_greeting()
+{
+    clear_console();
+    printf("+--------------------------------------------------------------------+\n");
+    printf("|    ________      __       __  ___                                  |\n");
+    printf("|   / ____/ /_  __/ /_     /  |/  /___ _____  ____ _____ ____  _____ |\n");
+    printf("|  / /   / / / / / __ \\   / /|_/ / __ `/ __ \\/ __ `/ __ `/ _ \\/ ___/ |\n");
+    printf("| / /___/ / /_/ / /_/ /  / /  / / /_/ / / / / /_/ / /_/ /  __/ /     |\n");
+    printf("| \\____/_/\\__,_/_.___/  /_/  /_/\\__,_/_/ /_/\\__,_/\\__, /\\___/_/      |\n");
+    printf("|                                                /____/              |\n");
+    printf("+--------------------------------------------------------------------+\n\n");
+}
+
+char *accept_variable_length_input()
+{
+    char *buffer = malloc(1);
+    if (buffer == NULL)
+    {
+        printf("Allocation of %d bytes of memory failed", 1);
+        exit(1);
+    }
+
+    size_t input_size = 0;
+    size_t buffer_capacity = 1;
+    char input;
+    while ((input = getchar()) != '\n' && input != EOF)
+    {
+        if (input_size + 1 >= buffer_capacity)
+        {
+            buffer_capacity++;
+            buffer = realloc(buffer, buffer_capacity);
+            if (buffer == NULL)
+            {
+                printf("Reallocation of %d bytes of memory failed", buffer_capacity);
+                exit(1);
+            }
+        }
+        buffer[input_size++] = input;
+    }
+    buffer[input_size] = '\0';
+
+    return buffer;
+}
+
 void show_main_menu()
 {
-    while (1)
+    char choice = '\0';
+
+    while (choice != 'q')
     {
-        clear_console();
-
-        printf("+-------------------------------------------------+\n");
-        printf("|    ____    __             __   _______     __   |\n");
-        printf("|   / __/___/ /  ___  ___  / /  / ___/ /_ __/ /   |\n");
-        printf("|  _\\ \\/ __/ _ \\/ _ \\/ _ \\/ /  / /__/ / // / _ \\  |\n");
-        printf("| /___/\\__/_//_/\\___/\\___/_/   \\___/_/\\_,_/_.__/  |\n");
-        printf("|   /  |/  /__ ____  ___ ____ ____ ____           |\n");
-        printf("|  / /|_/ / _ `/ _ \\/ _ `/ _ `/ -_) __/           |\n");
-        printf("| /_/  /_/\\_,_/_//_/\\_,_/\\_, /\\__/_/              |\n");
-        printf("|                      /___/                      |\n");
-        printf("+-------------------------------------------------+\n\n");
-
-        char choice = '\0';
+        print_greeting();
         printf("Press the key (indicated in brackets) corresponding to one of the options presented below to continue.\n\n");
         printf("[1] Register New Club\n");
-        printf("[2] View Clubs\n");
-        printf("[3] Update Existing Club\n");
-        printf("[4] Delete Club\n");
+        printf("[2] Manage Clubs\n");
+        printf("[3] Register New Student\n");
+        printf("[4] Manage Students\n");
         printf("[Q] Quit Program");
 
         choice = tolower(_getch());
@@ -51,30 +85,28 @@ void show_main_menu()
             break;
         case '2':
             clear_console();
-            view_clubs();
+            manage_clubs();
             break;
         case '3':
             clear_console();
-            update_club();
+            register_student();
             break;
         case '4':
             clear_console();
-            delete_club();
-            break;
-        case 'q':
-            printf("\n\nQuitting program...");
-            exit(0);
+            manage_students();
             break;
         }
     }
+
+    printf("\n\nQuitting program...");
 }
 
 void prompt_return_to_main_menu()
 {
     printf("Press [Backspace] at any time to return to the main menu.");
-    char keyboard_input;
-    while (keyboard_input != BACKSPACE_ASCII_CODE)
+    char input;
+    while (input != BACKSPACE_ASCII_CODE)
     {
-        keyboard_input = _getch();
+        input = _getch();
     };
 }

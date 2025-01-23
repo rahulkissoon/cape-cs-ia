@@ -1,8 +1,11 @@
 #include <conio.h>
 #include <ctype.h>
+#include <math.h>
 #include <stdio.h>
 #include <Windows.h>
 #include <stdlib.h>
+#include <string.h>
+#include "database.h"
 #include "clubs.h"
 #include "menu_system.h"
 #include "students.h"
@@ -28,24 +31,44 @@ void print_greeting()
     printf("| / /___/ / /_/ / /_/ /  / /  / / /_/ / / / / /_/ / /_/ /  __/ /     |\n");
     printf("| \\____/_/\\__,_/_.___/  /_/  /_/\\__,_/_/ /_/\\__,_/\\__, /\\___/_/      |\n");
     printf("|                                                /____/              |\n");
-    printf("+--------------------------------------------------------------------+\n\n");
+    printf("+--------------------------------------------------------------------+");
+
+    if (strcmp(school_name, "") != 0)
+    {
+        printf("\n|");
+        for (int i = 0; i < floor((double)(strlen("--------------------------------------------------------------------") - strlen(school_name)) / 2); i++)
+        {
+            printf(" ");
+        }
+        for (int i = 0; i < strlen(school_name); i++)
+        {
+            printf("%c", toupper(school_name[i]));
+        }
+        for (int i = 0; i < ceil((double)(strlen("--------------------------------------------------------------------") - strlen(school_name)) / 2); i++)
+        {
+            printf(" ");
+        }
+        printf("|\n");
+        printf("+--------------------------------------------------------------------+");
+    }
+    printf("\n\n");
 }
 
 char *accept_variable_length_input()
 {
-    char *buffer = malloc(1);
+    char *buffer = malloc(sizeof(char));
     if (buffer == NULL)
     {
-        printf("Allocation of %d bytes of memory failed", 1);
+        printf("Allocation of %d bytes of memory failed", sizeof(char));
         exit(1);
     }
 
-    size_t input_size = 0;
+    size_t buffer_size = 0;
     size_t buffer_capacity = 1;
     char input;
     while ((input = getchar()) != '\n' && input != EOF)
     {
-        if (input_size + 1 >= buffer_capacity)
+        if (buffer_size + 1 >= buffer_capacity)
         {
             buffer_capacity++;
             buffer = realloc(buffer, buffer_capacity);
@@ -55,9 +78,9 @@ char *accept_variable_length_input()
                 exit(1);
             }
         }
-        buffer[input_size++] = input;
+        buffer[buffer_size++] = input;
     }
-    buffer[input_size] = '\0';
+    buffer[buffer_size] = '\0';
 
     return buffer;
 }

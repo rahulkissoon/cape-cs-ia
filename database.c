@@ -4,13 +4,14 @@
 #include <ctype.h>
 #include <conio.h>
 #include "auth.h"
+#include "database.h"
 #include "menu_system.h"
 #include "clubs.h"
 #include "students.h"
 
 const char *DATA_FILENAME = "data.bin";
 
-char *school_name = NULL;
+char school_name[MAX_SCHOOL_NAME_LENGTH] = "";
 
 void save_data_to_file()
 {
@@ -32,16 +33,14 @@ void save_data_to_file()
         }
     }
 
-    int school_name_length = strlen(school_name) + 1;
-    fwrite(&school_name_length, sizeof(int), 1, dataFilePtr);
-    fwrite(school_name, sizeof(char), school_name_length, dataFilePtr);
+    fwrite(&school_name, sizeof(char), MAX_SCHOOL_NAME_LENGTH, dataFilePtr);
 
     int admin_password_length = strlen(admin_password) + 1;
     fwrite(&admin_password_length, sizeof(int), 1, dataFilePtr);
     fwrite(admin_password, sizeof(char), admin_password_length, dataFilePtr);
 
     fwrite(&club_count, sizeof(int), 1, dataFilePtr);
-    fwrite(&last_club_id, sizeof(int), 1, dataFilePtr);
+    fwrite(&prev_club_id, sizeof(int), 1, dataFilePtr);
     for (int i = 0; i < club_count; i++)
     {
         fwrite(&clubs[i], sizeof(struct Club), 1, dataFilePtr);
@@ -49,7 +48,7 @@ void save_data_to_file()
     }
 
     fwrite(&student_count, sizeof(int), 1, dataFilePtr);
-    fwrite(&last_student_id, sizeof(int), 1, dataFilePtr);
+    fwrite(&prev_student_id, sizeof(int), 1, dataFilePtr);
     for (int i = 0; i < student_count; i++)
     {
         fwrite(&students[i], sizeof(struct Student), 1, dataFilePtr);
@@ -67,10 +66,7 @@ void load_data_from_file()
     }
     else
     {
-        int school_name_length = 0;
-        fread(&school_name_length, sizeof(int), 1, dataFilePtr);
-        school_name = malloc(school_name_length);
-        fread(school_name, sizeof(char), school_name_length, dataFilePtr);
+        fread(&school_name, sizeof(char), MAX_SCHOOL_NAME_LENGTH, dataFilePtr);
 
         int admin_password_length = 0;
         fread(&admin_password_length, sizeof(int), 1, dataFilePtr);
@@ -78,7 +74,7 @@ void load_data_from_file()
         fread(admin_password, sizeof(char), admin_password_length, dataFilePtr);
 
         fread(&club_count, sizeof(int), 1, dataFilePtr);
-        fread(&last_club_id, sizeof(int), 1, dataFilePtr);
+        fread(&prev_club_id, sizeof(int), 1, dataFilePtr);
         for (int i = 0; i < club_count; i++)
         {
             fread(&clubs[i], sizeof(struct Club), 1, dataFilePtr);
@@ -88,7 +84,7 @@ void load_data_from_file()
         }
 
         fread(&student_count, sizeof(int), 1, dataFilePtr);
-        fread(&last_student_id, sizeof(int), 1, dataFilePtr);
+        fread(&prev_student_id, sizeof(int), 1, dataFilePtr);
         for (int i = 0; i < student_count; i++)
         {
             fread(&students[i], sizeof(struct Student), 1, dataFilePtr);
@@ -144,11 +140,12 @@ void first_time_setup()
     _getch();
 
     print_greeting();
-    printf("Please enter the name of your school. ");
+    printf("Please enter the name of your school. (Input will be truncated to first %d characters)\n\n", MAX_SCHOOL_NAME_LENGTH);
     while (true)
     {
-        school_name = accept_variable_length_input(1);
-        if (strlen(school_name) > 0)
+        fgets(school_name, sizeof(school_name) + sizeof(char), stdin);
+        school_name[strlen(school_name) - 1] = '\0';
+        if (strlen(school_name) > 0 && strlen(school_name) <= MAX_SCHOOL_NAME_LENGTH)
         {
             break;
         }

@@ -13,7 +13,7 @@
 
 int student_count = 0;
 
-int last_student_id = 0;
+int prev_student_id = 0;
 
 struct Student students[MAX_STUDENTS] = {{0}};
 
@@ -25,50 +25,65 @@ void manage_students()
         return;
     }
 
-    if (student_count == 0)
-    {
-        print_greeting();
-        printf("There are no students registered. Press any key to return to the previous menu.");
-        _getch();
-        return;
-    }
-
     while (true)
     {
+        if (student_count == 0)
+        {
+            print_greeting();
+            printf("There are no students registered. Press any key to return to the previous menu.");
+            _getch();
+            return;
+        }
+
         print_greeting();
         printf("MANAGE STUDENTS\n\n");
-        printf("Type in the number indicated in brackets preceding the name and then press [Enter] to select the student. Alternatively, enter \"0\" to return to the main menu.\n\n");
+        printf("Type in either the student's full name or ID then press [Enter]. Alternatively, enter \"0\" to return to the main menu.\n\n");
         for (int i = 0; i < student_count; i++)
         {
             struct Student student = students[i];
-            printf("[%d] [%s]\n", student.id, student.name);
+            printf("[%d] %s\n", student.id, student.name);
         }
 
         struct Student student = {0};
-        int student_pos = 0;
+        int student_pos = -1;
         while (student.id == 0)
         {
-            char inputted_student_id[5];
-            fgets(inputted_student_id, sizeof(inputted_student_id), stdin);
-            if (strcmp(inputted_student_id, "0\n") == 0)
+            char student_lookup_query[MAX_STUDENT_NAME_LENGTH];
+            fgets(student_lookup_query, sizeof(student_lookup_query) + sizeof(char), stdin);
+            student_lookup_query[strlen(student_lookup_query) - 1] = '\0';
+            if (strcmp(student_lookup_query, "0") == 0)
             {
                 break;
             }
 
-            student_pos = atoi(inputted_student_id);
-            if (student_pos <= last_student_id && student_pos != 0)
+            for (int i = 0; i < student_count; i++)
             {
-                for (int i = 0; i < student_count; i++)
+                if (students[i].id == atoi(student_lookup_query))
                 {
-                    if (students[i].id == student_pos)
-                    {
-                        student = students[i];
-                        break;
-                    }
+                    student = students[i];
+                    student_pos = i;
+                    break;
+                }
+
+                for (int j = 0; j < sizeof(student_lookup_query) / sizeof(char); j++)
+                {
+                    student_lookup_query[j] = tolower(student_lookup_query[j]);
+                }
+                char student_name[MAX_STUDENT_NAME_LENGTH];
+                strcpy(student_name, students[i].name);
+                for (int j = 0; j < sizeof(student_name) / sizeof(char); j++)
+                {
+                    student_name[j] = tolower(student_name[j]);
+                }
+                if (strcmp(student_name, student_lookup_query) == 0)
+                {
+                    student = students[i];
+                    student_pos = i;
+                    break;
                 }
             }
         }
-        if (student_pos == 0)
+        if (student_pos == -1)
         {
             break;
         }
@@ -96,6 +111,8 @@ void manage_students()
                 break;
 
             case '3':
+                delete_student(student, student_pos);
+                choice = BACKSPACE_ASCII_CODE;
                 break;
             }
         }
@@ -117,7 +134,7 @@ void view_student_info(struct Student student)
     }
     else
     {
-        for (int i = 0; i < sizeof(student.club_memberships); i++)
+        for (int i = 0; i < sizeof(student.club_memberships) / sizeof(int); i++)
         {
             int club_id = student.club_memberships[i];
             if (club_id == 0)
@@ -164,7 +181,7 @@ void register_student()
     {
         print_greeting();
         printf("Name: ");
-        fgets(student.name, sizeof(student.name), stdin);
+        fgets(student.name, sizeof(student.name) + sizeof(char), stdin);
         student.name[strlen(student.name) - 1] = '\0';
         if (strlen(student.name) > 0)
         {
@@ -177,9 +194,23 @@ void register_student()
         printf("Name: %s\n", student.name);
         printf("Class: ");
 
-        fgets(student.class, sizeof(student.class), stdin);
+        fgets(student.class, sizeof(student.class) + sizeof(char), stdin);
         student.class[strlen(student.class) - 1] = '\0';
         if (strlen(student.class) > 0)
+        {
+            break;
+        }
+    }
+    while (true)
+    {
+        print_greeting();
+        printf("Name: %s\n", student.name);
+        printf("Class: %s\n", student.class);
+        printf("Email Address: ");
+
+        fgets(student.email_address, sizeof(student.email_address) + sizeof(char), stdin);
+        student.email_address[strlen(student.email_address) - 1] = '\0';
+        if (strlen(student.email_address) > 0)
         {
             break;
         }
@@ -198,9 +229,8 @@ void register_student()
     }
     student.is_active = true;
     student.registered_at = time(NULL);
-    student.id = ++last_student_id;
-    students[student.id - 1] = student;
-    student_count++;
+    student.id = ++prev_student_id;
+    students[student_count++] = student;
     save_data_to_file();
 
     print_greeting();
@@ -208,9 +238,121 @@ void register_student()
     printf("> ID: %d\n", student.id);
     printf("> Name: %s\n", student.name);
     printf("> Class: %s\n", student.class);
+    printf("> Email Address: %s\n", student.email_address);
     printf("> Activity Status: Active\n");
     printf("> Registered At: %s", ctime(&student.registered_at));
     printf("> Club Memberships: None\n\n");
     printf("Press any key at any time to return to the previous menu.");
     _getch();
+}
+
+void delete_student(struct Student student, int student_pos)
+{
+    print_greeting();
+    printf("Please confirm whether you would like to permanently delete student '%s'. (y/n)\n", student.name);
+    printf("Warning: This is an irreversible action. All data associated with student '%s' will be irrecoverably lost.\n", student.name);
+    char confirmation = _getch();
+    if (tolower(confirmation) != 'y')
+    {
+        print_greeting();
+        printf("Deletion of student '%s' cancelled.", student.name);
+    }
+    else
+    {
+        for (int i = 0; i < sizeof(student.club_memberships) / sizeof(int); i++)
+        {
+            if (student.club_memberships[i] == 0)
+            {
+                break;
+            }
+
+            struct Club club;
+            int club_pos;
+            for (int j = 0; j < club_count; j++)
+            {
+                if (clubs[j].id == student.club_memberships[i])
+                {
+                    club_pos = j;
+                    club = clubs[j];
+                    break;
+                }
+            }
+
+            bool is_student_rep = false;
+            for (int j = 0; j < club.student_rep_count; j++)
+            {
+                if (club.student_rep_ids[j] == student.id)
+                {
+                    is_student_rep = true;
+                    break;
+                }
+            }
+
+            if (is_student_rep && club.student_rep_count == 1)
+            {
+                print_greeting();
+                printf("Deletion cancelled because '%s' is currently the only student representative of the club '%s'. Please designate another student representative and try again. Press [Backspace] at any time to return to the club menu.", student.name, club.name);
+                char user_input = 0;
+                while (user_input != BACKSPACE_ASCII_CODE)
+                {
+                    user_input = _getch();
+                };
+                return;
+            }
+
+            for (int j = 0; j < club.member_count; j++)
+            {
+                if (club.member_ids[j] == student.id)
+                {
+                    if (club.member_count > j + 1)
+                    {
+                        for (int k = j; k < club.member_count - 1; k++)
+                        {
+                            clubs[club_pos].member_ids[k] = clubs[club_pos].member_ids[k + 1];
+                        }
+                    }
+                    break;
+                }
+            }
+            clubs[club_pos].member_ids[club.member_count - 1] = 0;
+            clubs[club_pos].member_count--;
+
+            for (int j = 0; j < club.student_rep_count; j++)
+            {
+                if (club.student_rep_ids[j] == student.id)
+                {
+                    if (club.student_rep_count > j + 1)
+                    {
+                        for (int k = j; k < club.student_rep_count - 1; k++)
+                        {
+                            clubs[club_pos].student_rep_ids[k] = clubs[club_pos].student_rep_ids[k + 1];
+                        }
+                    }
+                    break;
+                }
+            }
+            clubs[club_pos].student_rep_ids[club.student_rep_count - 1] = 0;
+            clubs[club_pos].student_rep_count--;
+        }
+        if (student_count > student_pos + 1)
+        {
+            for (int i = student_pos; i < student_count; i++)
+            {
+                students[i] = students[i + 1];
+            }
+        }
+        struct Student placeholder_student = {0};
+        students[--student_count] = placeholder_student;
+        save_data_to_file();
+
+        print_greeting();
+        printf("Successfully deleted student '%s'.", student.name);
+    }
+
+    printf(" Press [Backspace] at any time to return to the previous menu.");
+    char user_input = 0;
+    while (user_input != BACKSPACE_ASCII_CODE)
+    {
+        user_input = _getch();
+    };
 }

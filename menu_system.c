@@ -10,8 +10,6 @@
 #include "menu_system.h"
 #include "students.h"
 
-const int BACKSPACE_ASCII_CODE = 8;
-
 void clear_console()
 {
 #ifdef _WIN32
@@ -99,7 +97,7 @@ void show_main_menu()
         printf("[4] Manage Students\n");
         printf("[Q] Quit Program");
 
-        choice = tolower(_getch());
+        choice = _getch();
         switch (choice)
         {
         case '1':
@@ -126,9 +124,9 @@ void show_main_menu()
 
 void prompt_return_to_main_menu()
 {
-    printf("Press [Backspace] at any time to return to the main menu.");
+    printf("Press [Q] to return to the main menu.");
     char input;
-    while (input != BACKSPACE_ASCII_CODE)
+    while (input != 'q')
     {
         input = _getch();
     };

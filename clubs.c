@@ -10,11 +10,14 @@
 #include "clubs.h"
 #include "database.h"
 #include "students.h"
+#include <Windows.h>
+
 struct Club clubs[MAX_CLUBS] = {{0}};
+struct Meeting meetings[MAX_MEETINGS] = {{0}};
 
 int club_count = 0;
-
 int prev_club_id = 0;
+int meeting_count = 0;
 
 void manage_clubs()
 {
@@ -28,7 +31,7 @@ void manage_clubs()
         }
 
         printf("MANAGE CLUBS\n\n");
-        printf("Type in the number indicated in brackets preceding the name and then press [Enter] to select the club. Alternatively, enter \"0\" to return to the main menu.\n\n");
+        printf("Type in the number indicated in brackets preceding the name and then press [Enter] to select the club. Otherwise, leave the field blank and press [Enter] to return to the main menu.\n\n");
         for (int i = 0; i < club_count; i++)
         {
             struct Club club = clubs[i];
@@ -42,7 +45,8 @@ void manage_clubs()
         {
             char club_lookup_query[5];
             fgets(club_lookup_query, sizeof(club_lookup_query) + sizeof(char), stdin);
-            if (strcmp(club_lookup_query, "0\n") == 0)
+            club_lookup_query[strlen(club_lookup_query) - 1] = '\0';
+            if (strcmp(club_lookup_query, "") == 0)
             {
                 break;
             }
@@ -86,7 +90,7 @@ void manage_clubs()
         }
 
         char choice = '\0';
-        while (choice != BACKSPACE_ASCII_CODE)
+        while (choice != 'q')
         {
             club = clubs[club_pos];
             if (club.id == 0)
@@ -99,10 +103,12 @@ void manage_clubs()
             printf("Press the key (indicated in brackets) corresponding to one of the options presented below to continue.\n\n");
 
             printf("[1] View Information\n");
-            printf("[2] View Members\n");
+            printf("[2] List Members\n");
             printf("[3] Update Information\n");
-            printf("[4] Delete\n");
-            printf("[Backspace] Return\n");
+            printf("[4] Post Meeting\n");
+            printf("[5] List Club Meetings\n");
+            printf("[6] Delete Club\n");
+            printf("[Q] Return\n");
 
             choice = _getch();
             switch (choice)
@@ -120,6 +126,14 @@ void manage_clubs()
                 break;
 
             case '4':
+                post_meeting(club, club_pos);
+                break;
+
+            case '5':
+                list_club_meetings(club);
+                break;
+
+            case '6':
                 delete_club(club, club_pos);
                 break;
             }
@@ -141,8 +155,8 @@ void register_club()
         printf("Each club must have at least one student representative and there are 0 registered students. ");
         return prompt_return_to_main_menu();
     }
-    struct Club club = {0};
 
+    struct Club club = {0};
     while (true)
     {
         print_greeting();
@@ -314,16 +328,17 @@ void register_club()
     printf("\n");
     if (tolower(confirmation) != 'y')
     {
-        clear_console();
+        print_greeting();
         printf("Registration of club '%s' cancelled. ", club.name);
         return prompt_return_to_main_menu();
     }
 
     club.id = ++prev_club_id;
     club.registered_at = time(NULL);
-    for (int i = 0; i < club.student_rep_count; i++)
+
+    for (int i = 0; i < student_count; i++)
     {
-        for (int j = 0; j < student_count; j++)
+        for (int j = 0; j < club.student_rep_count; j++)
         {
             if (students[j].id == club.student_rep_ids[i])
             {
@@ -337,8 +352,8 @@ void register_club()
                         break;
                     }
                 }
+                break;
             }
-            break;
         }
     }
     clubs[club_count++] = club;
@@ -391,9 +406,9 @@ void view_club_info(struct Club club)
     }
 
     printf("\n\n");
-    printf("Press [Backspace] at any time to return to the club menu.");
-    char user_input = 0;
-    while (user_input != BACKSPACE_ASCII_CODE)
+    printf("Press [Q] to return to the club menu.");
+    char user_input = '\0';
+    while (user_input != 'q')
     {
         user_input = _getch();
     };
@@ -419,9 +434,9 @@ void view_club_members(struct Club club)
     }
 
     printf("\n");
-    printf("Press [Backspace] at any time to return to the club menu.");
+    printf("Press [Q] to return to the club menu.");
     char user_input = '\0';
-    while (user_input != BACKSPACE_ASCII_CODE)
+    while (user_input != 'q')
     {
         user_input = _getch();
     };
@@ -439,10 +454,10 @@ void update_club(struct Club club, int club_pos)
         printf("[3] Description\n");
         printf("[4] Student Representatives\n");
         printf("[5] Password\n");
-        printf("[Backspace] Return");
+        printf("[Q] Return");
 
         char choice = _getch();
-        if (choice == BACKSPACE_ASCII_CODE)
+        if (choice == 'q')
         {
             break;
         }
@@ -693,9 +708,9 @@ void update_club(struct Club club, int club_pos)
 
                 if (choice == '1' || choice == '2' || choice == '3' || choice == '4' || choice == '5')
                 {
-                    printf("Press [Backspace] at any time to return to the club menu.");
-                    char user_input = 0;
-                    while (user_input != BACKSPACE_ASCII_CODE)
+                    printf("Press [Q] to return to the club menu.");
+                    char user_input = '\0';
+                    while (user_input != 'q')
                     {
                         user_input = _getch();
                     };
@@ -719,6 +734,20 @@ void delete_club(struct Club club, int club_pos)
     }
     else
     {
+        for (int i = 0; i < meeting_count; i++)
+        {
+            struct Meeting meeting = meetings[i];
+            if (meeting.club_id == club.id)
+            {
+                for (int j = i; j < meeting_count - 1; j++)
+                {
+                    meetings[j] = meetings[j + 1];
+                }
+                struct Meeting placeholder_meeting = {0};
+                meetings[--meeting_count] = placeholder_meeting;
+            }
+        }
+
         for (int i = 0; i < club.member_count; i++)
         {
             for (int j = 0; j < student_count; j++)
@@ -734,7 +763,6 @@ void delete_club(struct Club club, int club_pos)
                     {
                         if (student.club_memberships[k] == club.id)
                         {
-
                             for (int l = k; l < sizeof(student.club_memberships) / sizeof(int) - 1; l++)
                             {
                                 students[j].club_memberships[l] = students[j].club_memberships[l + 1];
@@ -746,6 +774,7 @@ void delete_club(struct Club club, int club_pos)
                 }
             }
         }
+
         if (club_count > club_pos + 1)
         {
             for (int i = club_pos; i < club_count - 1; i++)
@@ -759,11 +788,317 @@ void delete_club(struct Club club, int club_pos)
         print_greeting();
         printf("Successfully deleted club '%s'.", club.name);
 
-        printf(" Press [Backspace] at any time to return to the previous menu.");
-        char user_input = 0;
-        while (user_input != BACKSPACE_ASCII_CODE)
+        printf(" Press [Q] to return to the previous menu.");
+        char user_input = '\0';
+        while (user_input != 'q')
         {
             user_input = _getch();
         };
+    }
+}
+
+void post_meeting(struct Club club, int club_pos)
+{
+    print_greeting();
+
+    struct Meeting meeting = {0};
+    meeting.club_id = club.id;
+    while (true)
+    {
+        print_greeting();
+        printf("> Summarize the meeting minutes in %d characters or less: ", MAX_MEETING_SUMMARY_LENGTH);
+        fgets(meeting.summary, sizeof(meeting.summary) + sizeof(char), stdin);
+        meeting.summary[strlen(meeting.summary) - 1] = '\0';
+        if (strlen(meeting.summary) > 0)
+        {
+            break;
+        }
+    }
+
+    while (true)
+    {
+        print_greeting();
+        printf("> Summarize the meeting minutes in %d characters or less: %s\n", MAX_MEETING_SUMMARY_LENGTH, meeting.summary);
+        printf("> Date and Time (DD/MM/YYYY HH:MM): ");
+
+        char user_input[17];
+        fgets(user_input, sizeof(user_input) + sizeof(char), stdin);
+        user_input[strlen(user_input) - 1] = '\0';
+
+        struct tm tm;
+        sscanf(user_input, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min);
+        tm.tm_year -= 1900;
+        tm.tm_mon -= 1;
+        meeting.time = mktime(&tm);
+
+        if (meeting.time == (time_t)-1 || meeting.time > time(NULL))
+        {
+            continue;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    meeting.absent_member_count = club.member_count;
+    for (int i = 0; i < club.member_count; i++)
+    {
+        if (club.member_ids[i] == 0)
+        {
+            break;
+        }
+        meeting.absent_member_ids[i] = club.member_ids[i];
+    }
+
+    meeting = edit_attendance_sheet(club, meeting);
+    meeting.id = ++clubs[club_pos].prev_meeting_id;
+    meetings[clubs[club_pos].meeting_count++] = meeting;
+    meeting_count++;
+    save_data_to_file();
+
+    print_greeting();
+    printf("Meeting successfully posted for club '%s'.\n\n", club.name);
+    printf("> ID: %d\n", meeting.id);
+    printf("> Date and Time: %s", ctime(&meeting.time));
+    printf("> Summary: %s\n", meeting.summary);
+    printf("> Attendance: %d/%d P, %d/%d A\n\n", meeting.present_member_count, club.member_count, meeting.absent_member_count, club.member_count);
+
+    printf("Press [Q] to return to the club menu.");
+    char user_input = '\0';
+    while (user_input != 'q')
+    {
+        user_input = _getch();
+    };
+}
+
+struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
+{
+    int attendee_count = meeting.present_member_count + meeting.absent_member_count;
+    int *attendee_ids = malloc(attendee_count * sizeof(int));
+    if (attendee_ids == NULL)
+    {
+        printf("Failed to allocate %d bytes", attendee_count * sizeof(int));
+        exit(1);
+    }
+    for (int i = 0; i < meeting.absent_member_count; i++)
+    {
+        attendee_ids[i] = meeting.absent_member_ids[i];
+    }
+    for (int i = 0; i < meeting.present_member_count; i++)
+    {
+        attendee_ids[meeting.absent_member_count + i] = meeting.present_member_ids[i];
+    }
+
+    int cursor_position = 0;
+    char choice = '\0';
+    while (choice != 'q')
+    {
+
+        print_greeting();
+        printf("EDIT ATTENDANCE SHEET\n\n");
+        printf("- The \">\" symbol indicates which member is currently selected. Press the [W] and [S] keys to amend your current selection.\n");
+        printf("- All members are initially marked as absent. Press [P] and [A] to mark the currently selected member as present and absent respectively.\n");
+        printf("- Press [Q] to confirm and save the attendance sheet.\n\n");
+
+        struct Student selected_member;
+        bool selected_member_is_present = false;
+
+        for (int i = 0; i < attendee_count; i++)
+        {
+            struct Student member = {0};
+            bool is_present = false;
+            for (int j = 0; j < student_count; j++)
+            {
+                if (students[j].id == attendee_ids[i])
+                {
+                    member = students[j];
+                    for (int k = 0; k < meeting.present_member_count; k++)
+                    {
+                        if (meeting.present_member_ids[k] == member.id)
+                        {
+                            is_present = true;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+            if (i == cursor_position)
+            {
+                selected_member = member;
+                selected_member_is_present = is_present;
+                printf("> ");
+            }
+            else
+            {
+                printf("  ");
+            }
+            printf("[%d] %s: %s\n", member.id, member.name, is_present ? "P" : "A");
+        }
+
+        choice = _getch();
+        switch (choice)
+        {
+        case 's':
+            if (cursor_position < attendee_count - 1)
+            {
+                cursor_position++;
+            }
+            break;
+
+        case 'w':
+            if (cursor_position > 0)
+            {
+                cursor_position--;
+            }
+            break;
+
+        case 'p':
+            if (!selected_member_is_present)
+            {
+                meeting.present_member_ids[meeting.present_member_count++] = selected_member.id;
+            }
+            for (int i = 0; i < meeting.absent_member_count; i++)
+            {
+                if (meeting.absent_member_ids[i] == selected_member.id)
+                {
+                    if (meeting.absent_member_count > i + 1)
+                    {
+                        for (int j = i; j < meeting.absent_member_count - 1; j++)
+                        {
+                            meeting.absent_member_ids[j] = meeting.absent_member_ids[j + 1];
+                        }
+                    }
+                    meeting.absent_member_ids[--meeting.absent_member_count] = 0;
+                    break;
+                }
+            }
+            break;
+
+        case 'a':
+            if (selected_member_is_present)
+            {
+                meeting.absent_member_ids[meeting.absent_member_count++] = selected_member.id;
+            }
+            for (int i = 0; i < meeting.present_member_count; i++)
+            {
+                if (meeting.present_member_ids[i] == selected_member.id)
+                {
+                    if (meeting.present_member_count > i + 1)
+                    {
+                        for (int j = i; j < meeting.present_member_count - 1; j++)
+                        {
+                            meeting.present_member_ids[j] = meeting.present_member_ids[j + 1];
+                        }
+                    }
+                    meeting.present_member_ids[--meeting.present_member_count] = 0;
+                    break;
+                }
+            }
+            break;
+        }
+    }
+
+    free(attendee_ids);
+    return meeting;
+}
+
+void list_club_meetings(struct Club club)
+{
+    print_greeting();
+
+    if (club.meeting_count == 0)
+    {
+        printf("No meetings have yet been posted for club '%s'. Press any key to return to the club menu.", club.name);
+        _getch();
+        return;
+    }
+
+    while (true)
+    {
+        print_greeting();
+        printf("CLUB MEETING LISTING FOR '%s'\n\n", club.name);
+        printf("Type in the meeting ID then press [Enter]. Otherwise, leave the field blank and press [Enter] to return to the club menu.\n\n");
+
+        for (int i = 0; i < meeting_count; i++)
+        {
+            struct Meeting meeting = meetings[i];
+            if (meeting.club_id != club.id)
+            {
+                continue;
+            }
+
+            char truncated_summary[27] = "";
+            for (int j = 0; j < strlen(meeting.summary); j++)
+            {
+                if (j == 23)
+                {
+                    strcat(truncated_summary, "...");
+                    truncated_summary[26] = '\0';
+                    break;
+                }
+
+                truncated_summary[j] = meeting.summary[j];
+            }
+
+            printf("[%d] | %s | %s", meeting.id, truncated_summary, ctime(&meeting.time));
+        }
+        printf("\n");
+
+        struct Meeting meeting = {0};
+        int meeting_pos = -1;
+        while (meeting.id == 0)
+        {
+            char meeting_lookup_query[5];
+            fgets(meeting_lookup_query, sizeof(meeting_lookup_query) + sizeof(char), stdin);
+            meeting_lookup_query[strlen(meeting_lookup_query) - 1] = '\0';
+            if (strcmp(meeting_lookup_query, "") == 0)
+            {
+                break;
+            }
+
+            for (int i = 0; i < meeting_count; i++)
+            {
+                if (meetings[i].club_id != club.id)
+                {
+                    continue;
+                }
+
+                if (meetings[i].id == atoi(meeting_lookup_query))
+                {
+                    meeting = meetings[i];
+                    meeting_pos = i;
+                    break;
+                }
+            }
+        }
+        if (meeting_pos == -1)
+        {
+            break;
+        }
+
+        while (true)
+        {
+            print_greeting();
+            printf("MEETING INFORMATION\n\n", club.name);
+            printf("> ID: %d\n", meeting.id);
+            printf("> Date and Time: %s", ctime(&meeting.time));
+            printf("> Summary: %s\n", meeting.summary);
+            printf("> Attendance: %d/%d P; %d/%d A\n\n", meeting.present_member_count, club.member_count, meeting.absent_member_count, club.member_count);
+            printf("Press [A] to view and edit the attendance sheet. Press [Q] to return to the club menu.");
+
+            char choice = _getch();
+            if (choice == 'a')
+            {
+                meeting = edit_attendance_sheet(club, meeting);
+                meetings[meeting_pos] = meeting;
+                save_data_to_file();
+            }
+            else if (choice == 'q')
+            {
+                break;
+            }
+        }
     }
 }

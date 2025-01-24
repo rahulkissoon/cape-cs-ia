@@ -47,6 +47,11 @@ void save_data_to_file()
         fwrite(clubs[i].password, sizeof(char), clubs[i].password_length, dataFilePtr);
     }
 
+    for (int i = 0; i < meeting_count; i++)
+    {
+        fwrite(&meetings[i], sizeof(struct Meeting), 1, dataFilePtr);
+    }
+
     fwrite(&student_count, sizeof(int), 1, dataFilePtr);
     fwrite(&prev_student_id, sizeof(int), 1, dataFilePtr);
     for (int i = 0; i < student_count; i++)
@@ -78,9 +83,15 @@ void load_data_from_file()
         for (int i = 0; i < club_count; i++)
         {
             fread(&clubs[i], sizeof(struct Club), 1, dataFilePtr);
-
             clubs[i].password = malloc(clubs[i].password_length * sizeof(char));
             fread(clubs[i].password, sizeof(char), clubs[i].password_length, dataFilePtr);
+
+            meeting_count += clubs[i].meeting_count;
+        }
+
+        for (int i = 0; i < meeting_count; i++)
+        {
+            fread(&meetings[i], sizeof(struct Meeting), 1, dataFilePtr);
         }
 
         fread(&student_count, sizeof(int), 1, dataFilePtr);

@@ -10,7 +10,6 @@
 #include "clubs.h"
 #include "database.h"
 #include "students.h"
-#include <Windows.h>
 
 struct Club clubs[MAX_CLUBS] = {{0}};
 struct Meeting meetings[MAX_MEETINGS] = {{0}};

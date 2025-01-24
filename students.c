@@ -292,7 +292,7 @@ void delete_student(struct Student student, int student_pos)
             if (is_student_rep && club.student_rep_count == 1)
             {
                 print_greeting();
-                printf("Deletion cancelled because '%s' is currently the only student representative of the club '%s'. Please designate another student representative and try again. Press [Q] to return to the club menu.", student.name, club.name);
+                printf("Deletion failed because '%s' is currently the only student representative of the club '%s'. Please designate another student representative and try again. Press [Q] to return to the club menu.", student.name, club.name);
                 char user_input = '\0';
                 while (user_input != 'q')
                 {
@@ -318,6 +318,47 @@ void delete_student(struct Student student, int student_pos)
             clubs[club_pos].member_ids[club.member_count - 1] = 0;
             clubs[club_pos].member_count--;
 
+            for (int j = 0; j < meeting_count; j++)
+            {
+                struct Meeting meeting = meetings[j];
+                bool is_absent = false;
+                for (int k = 0; k < meeting.absent_member_count; k++)
+                {
+                    if (meeting.absent_member_ids[k] == student.id)
+                    {
+                        is_absent = true;
+                        if (meeting.absent_member_count > k + 1)
+                        {
+                            for (int l = k; l < meeting.absent_member_count - 1; l++)
+                            {
+                                meetings[j].absent_member_ids[l] = meeting.absent_member_ids[l + 1];
+                            }
+                        }
+                        meetings[j].absent_member_ids[--meetings[j].absent_member_count] = 0;
+                        break;
+                    }
+                }
+                if (is_absent)
+                {
+                    continue;
+                }
+                for (int k = 0; k < meeting.present_member_count; k++)
+                {
+                    if (meeting.present_member_ids[k] == student.id)
+                    {
+                        if (meeting.present_member_count > k + 1)
+                        {
+                            for (int l = k; l < meeting.present_member_count - 1; l++)
+                            {
+                                meetings[j].present_member_ids[l] = meeting.present_member_ids[l + 1];
+                            }
+                        }
+                        meetings[j].present_member_ids[--meetings[j].present_member_count] = 0;
+                        break;
+                    }
+                }
+            }
+
             for (int j = 0; j < club.student_rep_count; j++)
             {
                 if (club.student_rep_ids[j] == student.id)
@@ -335,6 +376,7 @@ void delete_student(struct Student student, int student_pos)
             clubs[club_pos].student_rep_ids[club.student_rep_count - 1] = 0;
             clubs[club_pos].student_rep_count--;
         }
+
         if (student_count > student_pos + 1)
         {
             for (int i = student_pos; i < student_count; i++)
@@ -342,6 +384,7 @@ void delete_student(struct Student student, int student_pos)
                 students[i] = students[i + 1];
             }
         }
+
         struct Student placeholder_student = {0};
         students[--student_count] = placeholder_student;
         save_data_to_file();

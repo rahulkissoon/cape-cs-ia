@@ -10,11 +10,6 @@
 #define MAX_EMAIL_ADDRESS_LENGTH 320
 #define MAX_CLUB_MEMBERSHIPS 1024
 
-void register_student();
-void manage_students();
-void view_student_info();
-void delete_student();
-
 struct Student
 {
     int id;
@@ -26,6 +21,11 @@ struct Student
     time_t registered_at;
 };
 extern struct Student students[MAX_STUDENTS];
+
+void manage_students();
+void view_student_info(struct Student student);
+void register_student();
+void delete_student(struct Student student, int student_pos);
 
 extern int prev_student_id;
 extern int student_count;

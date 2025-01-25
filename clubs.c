@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
+#include "accounting.h"
 #include "auth.h"
 #include "menu_system.h"
 #include "clubs.h"
@@ -22,26 +23,27 @@ void manage_clubs()
 {
     while (true)
     {
-        print_greeting();
         if (club_count == 0)
         {
+            print_greeting();
             printf("No clubs have yet been registered. ");
-            return prompt_return_to_main_menu();
+            return prompt_return("the main menu");
         }
-
-        printf("MANAGE CLUBS\n\n");
-        printf("Type in the number indicated in brackets preceding the name and then press [Enter] to select the club. Otherwise, leave the field blank and press [Enter] to return to the main menu.\n\n");
-        for (int i = 0; i < club_count; i++)
-        {
-            struct Club club = clubs[i];
-            printf("[%d] %s\n", club.id, club.name);
-        }
-        printf("\n");
 
         struct Club club = {0};
         int club_pos = -1;
         while (club.id == 0)
         {
+            print_greeting();
+            printf("MANAGE CLUBS\n\n");
+            printf("Type in the number indicated in brackets preceding the name and then press [Enter] to select the club. Otherwise, leave the field blank and press [Enter] to return to the main menu.\n\n");
+            for (int i = 0; i < club_count; i++)
+            {
+                struct Club club = clubs[i];
+                printf("[%d] %s\n", club.id, club.name);
+            }
+            printf("\n");
+
             char club_lookup_query[5];
             fgets(club_lookup_query, sizeof(club_lookup_query) + sizeof(char), stdin);
             club_lookup_query[strlen(club_lookup_query) - 1] = '\0';
@@ -85,11 +87,11 @@ void manage_clubs()
         bool is_authorized = prompt_authorization("Managing a club", club.password, STANDARD, "the main menu");
         if (!is_authorized)
         {
-            return;
+            continue;
         }
 
         char choice = '\0';
-        while (choice != 'q')
+        while (choice != 'r')
         {
             club = clubs[club_pos];
             if (club.id == 0)
@@ -106,8 +108,9 @@ void manage_clubs()
             printf("[3] Update Information\n");
             printf("[4] Post Meeting\n");
             printf("[5] List Club Meetings\n");
-            printf("[6] Delete Club\n");
-            printf("[Q] Return\n");
+            printf("[6] View Accounting Ledger\n");
+            printf("[7] Delete Club\n");
+            printf("[R] Return\n");
 
             choice = _getch();
             switch (choice)
@@ -133,6 +136,10 @@ void manage_clubs()
                 break;
 
             case '6':
+                view_club_ledger(club_pos);
+                break;
+
+            case '7':
                 delete_club(club, club_pos);
                 break;
             }
@@ -151,14 +158,16 @@ void register_club()
     print_greeting();
     if (student_count == 0)
     {
+        printf("REGISTER NEW CLUB\n\n");
         printf("Each club must have at least one student representative and there are 0 registered students. ");
-        return prompt_return_to_main_menu();
+        return prompt_return("the main menu");
     }
 
     struct Club club = {0};
     while (true)
     {
         print_greeting();
+        printf("REGISTER NEW CLUB\n\n");
         printf("> Name: ");
         fgets(club.name, sizeof(club.name) + sizeof(char), stdin);
         club.name[strlen(club.name) - 1] = '\0';
@@ -169,10 +178,11 @@ void register_club()
     }
 
     print_greeting();
+    printf("REGISTER NEW CLUB\n\n");
     printf("> Name: %s\n", club.name);
 
     strcpy(club.weekly_meeting_day, "");
-    printf("> Weekly Meeting Day: Choose a number corresponding to the desired weekday from the list presented below.\n");
+    printf("> Weekly Meeting Day: Choose a number corresponding to the desired weekday from the options presented below.\n");
     printf("[1] Monday\n");
     printf("[2] Tuesday\n");
     printf("[3] Wednesday\n");
@@ -205,6 +215,7 @@ void register_club()
     while (true)
     {
         print_greeting();
+        printf("REGISTER NEW CLUB\n\n");
         printf("> Name: %s\n", club.name);
         printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
         printf("> Description: ");
@@ -221,6 +232,7 @@ void register_club()
     while (true)
     {
         print_greeting();
+        printf("REGISTER NEW CLUB\n\n");
         printf("> Name: %s\n", club.name);
         printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
         printf("> Description: %s\n", club.description);
@@ -277,8 +289,10 @@ void register_club()
     while (true)
     {
         print_greeting();
+        printf("REGISTER NEW CLUB\n\n");
         printf("> Name: %s\n", club.name);
         printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
+        printf("> Description: %s\n", club.description);
         printf("> Student Representatives: %s\n", student_reps);
 
         printf("> Password: ");
@@ -291,8 +305,10 @@ void register_club()
         }
 
         print_greeting();
+        printf("REGISTER NEW CLUB\n\n");
         printf("> Name: %s\n", club.name);
         printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
+        printf("> Description: %s\n", club.description);
         printf("> Student Representatives: %s\n", student_reps);
 
         printf("> Password: ");
@@ -321,15 +337,26 @@ void register_club()
     }
 
     print_greeting();
-    printf("Confirm registration of club '%s'? (y/n) ", club.name);
-    char confirmation = '\0';
-    scanf("%c", &confirmation);
+    printf("REGISTER NEW CLUB\n\n");
+    printf("> Name: %s\n", club.name);
+    printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
+    printf("> Description: %s\n", club.description);
+    printf("> Student Representatives: %s\n", student_reps);
+    printf("> Password: ");
+    for (int i = 0; i < club.password_length; i++)
+    {
+        printf("*");
+    }
+    printf("\n\n");
+
+    printf("Confirm registration of club? (y/n)", club.name);
+    char confirmation = _getch();
     printf("\n");
-    if (tolower(confirmation) != 'y')
+    if (confirmation != 'y')
     {
         print_greeting();
         printf("Registration of club '%s' cancelled. ", club.name);
-        return prompt_return_to_main_menu();
+        return prompt_return("the main menu");
     }
 
     club.id = ++prev_club_id;
@@ -368,7 +395,7 @@ void register_club()
     printf("> Member Count: %d\n", club.member_count);
     printf("> Weekly Meeting Day: %s\n\n", club.weekly_meeting_day);
 
-    prompt_return_to_main_menu();
+    prompt_return("the main menu");
 }
 
 void view_club_info(struct Club club)
@@ -404,13 +431,7 @@ void view_club_info(struct Club club)
         }
     }
 
-    printf("\n\n");
-    printf("Press [Q] to return to the club menu.");
-    char user_input = '\0';
-    while (user_input != 'q')
-    {
-        user_input = _getch();
-    };
+    prompt_return("the club menu");
 }
 
 void view_club_members(struct Club club)
@@ -433,17 +454,13 @@ void view_club_members(struct Club club)
     }
 
     printf("\n");
-    printf("Press [Q] to return to the club menu.");
-    char user_input = '\0';
-    while (user_input != 'q')
-    {
-        user_input = _getch();
-    };
+    prompt_return("the club menu");
 }
 
 void update_club(struct Club club, int club_pos)
 {
-    while (true)
+    char choice = '\0';
+    while (choice != 'r')
     {
         print_greeting();
         printf("UPDATE CLUB INFORMATION\n\n");
@@ -453,268 +470,256 @@ void update_club(struct Club club, int club_pos)
         printf("[3] Description\n");
         printf("[4] Student Representatives\n");
         printf("[5] Password\n");
-        printf("[Q] Return");
+        printf("[R] Return");
 
-        char choice = _getch();
-        if (choice == 'q')
+        choice = _getch();
+        while (true)
         {
-            break;
-        }
-        else
-        {
-            while (true)
+            switch (choice)
             {
-                switch (choice)
+            case '1':
+                print_greeting();
+
+                printf("After typing the new name for '%s', press [Enter] to confirm.\n\n", club.name);
+                char new_name[MAX_CLUB_NAME_LENGTH] = "";
+                while (strcmp(new_name, ""))
                 {
-                case '1':
-                    print_greeting();
+                    fgets(new_name, sizeof(new_name) + sizeof(char), stdin);
+                    new_name[strlen(new_name) - 1] = '\0';
+                }
+                char old_name[MAX_CLUB_NAME_LENGTH];
+                strcpy(old_name, club.name);
+                strcpy(clubs[club_pos].name, new_name);
+                save_data_to_file();
+                print_greeting();
+                printf("Successfully updated the name of '%s' (previously '%s'). ", new_name, old_name);
+                break;
 
-                    printf("After typing the new name for '%s', press [Enter] to confirm.\n\n", club.name);
-                    char new_name[MAX_CLUB_NAME_LENGTH] = "";
-                    while (strcmp(new_name, ""))
+            case '2':
+                print_greeting();
+
+                printf("Choose a number corresponding to the desired weekday from the list presented below to update the weekly meeting day of '%s'.\n", club.name);
+                printf("[1] Monday\n");
+                printf("[2] Tuesday\n");
+                printf("[3] Wednesday\n");
+                printf("[4] Thursday\n");
+                printf("[5] Friday\n");
+                char old_weekly_meeting_day[9];
+                strcpy(old_weekly_meeting_day, club.weekly_meeting_day);
+                char new_weekly_meeting_day = '\0';
+                while (new_weekly_meeting_day == '\0')
+                {
+                    new_weekly_meeting_day = _getch();
+                    switch (new_weekly_meeting_day)
                     {
-                        fgets(new_name, sizeof(new_name) + sizeof(char), stdin);
-                        new_name[strlen(new_name) - 1] = '\0';
+                    case '1':
+                        strcpy(club.weekly_meeting_day, "Monday");
+                        break;
+                    case '2':
+                        strcpy(club.weekly_meeting_day, "Tuesday");
+                        break;
+                    case '3':
+                        strcpy(club.weekly_meeting_day, "Wednesday");
+                        break;
+                    case '4':
+                        strcpy(club.weekly_meeting_day, "Thursday");
+                        break;
+                    case '5':
+                        strcpy(club.weekly_meeting_day, "Friday");
+                        break;
                     }
-                    char old_name[MAX_CLUB_NAME_LENGTH];
-                    strcpy(old_name, club.name);
-                    strcpy(clubs[club_pos].name, new_name);
-                    save_data_to_file();
-                    print_greeting();
-                    printf("Successfully updated the name of '%s' (previously '%s'). ", new_name, old_name);
-                    break;
+                }
+                strcpy(clubs[club_pos].weekly_meeting_day, club.weekly_meeting_day);
+                save_data_to_file();
+                print_greeting();
+                printf("Successfully updated the weekly meeting day of '%s' from %s to %s. ", club.name, old_weekly_meeting_day, club.weekly_meeting_day);
+                break;
 
-                case '2':
-                    print_greeting();
+            case '3':
+                print_greeting();
 
-                    printf("Choose a number corresponding to the desired weekday from the list presented below to update the weekly meeting day of '%s'.\n", club.name);
-                    printf("[1] Monday\n");
-                    printf("[2] Tuesday\n");
-                    printf("[3] Wednesday\n");
-                    printf("[4] Thursday\n");
-                    printf("[5] Friday\n");
-                    char old_weekly_meeting_day[9];
-                    strcpy(old_weekly_meeting_day, club.weekly_meeting_day);
-                    char new_weekly_meeting_day = '\0';
-                    while (new_weekly_meeting_day == '\0')
+                printf("After typing the new description for '%s', press [Enter] to confirm.\n\n", club.name);
+                char new_description[MAX_CLUB_DESCRIPTION_LENGTH] = "";
+                while (strcmp(new_description, "") == 0)
+                {
+                    fgets(new_description, sizeof(new_description) + sizeof(char), stdin);
+                    new_description[strlen(new_description) - 1] = '\0';
+                }
+                strcpy(clubs[club_pos].description, new_description);
+                save_data_to_file();
+                print_greeting();
+                printf("Successfully updated the description of '%s'. ", club.name);
+                break;
+
+            case '4':
+                char prev_student_reps[2048] = "";
+                for (int i = 0; i < student_count; i++)
+                {
+                    struct Student student = students[i];
+                    for (int j = 0; j < club.student_rep_count; j++)
                     {
-                        new_weekly_meeting_day = _getch();
-                        switch (new_weekly_meeting_day)
+                        if (student.id == club.student_rep_ids[j])
                         {
-                        case '1':
-                            strcpy(club.weekly_meeting_day, "Monday");
-                            break;
-                        case '2':
-                            strcpy(club.weekly_meeting_day, "Tuesday");
-                            break;
-                        case '3':
-                            strcpy(club.weekly_meeting_day, "Wednesday");
-                            break;
-                        case '4':
-                            strcpy(club.weekly_meeting_day, "Thursday");
-                            break;
-                        case '5':
-                            strcpy(club.weekly_meeting_day, "Friday");
-                            break;
-                        }
-                    }
-                    strcpy(clubs[club_pos].weekly_meeting_day, club.weekly_meeting_day);
-                    save_data_to_file();
-                    print_greeting();
-                    printf("Successfully updated the weekly meeting day of '%s' from %s to %s. ", club.name, old_weekly_meeting_day, club.weekly_meeting_day);
-                    break;
-
-                case '3':
-                    print_greeting();
-
-                    printf("After typing the new description for '%s', press [Enter] to confirm.\n\n", club.name);
-                    char new_description[MAX_CLUB_DESCRIPTION_LENGTH] = "";
-                    while (strcmp(new_description, "") == 0)
-                    {
-                        fgets(new_description, sizeof(new_description) + sizeof(char), stdin);
-                        new_description[strlen(new_description) - 1] = '\0';
-                    }
-                    strcpy(clubs[club_pos].description, new_description);
-                    save_data_to_file();
-                    print_greeting();
-                    printf("Successfully updated the description of '%s'. ", club.name);
-                    break;
-
-                case '4':
-                    char prev_student_reps[2048] = "";
-                    for (int i = 0; i < student_count; i++)
-                    {
-                        struct Student student = students[i];
-                        for (int j = 0; j < club.student_rep_count; j++)
-                        {
-                            if (student.id == club.student_rep_ids[j])
+                            if (strcmp(prev_student_reps, "") != 0)
                             {
-                                if (strcmp(prev_student_reps, "") != 0)
-                                {
-                                    strcat(prev_student_reps, ", ");
-                                }
-
-                                strcat(prev_student_reps, student.name);
-                                strcat(prev_student_reps, " [");
-                                char stringified_student_id[5] = "";
-                                snprintf(stringified_student_id, sizeof(stringified_student_id), "%d", student.id);
-                                strcat(prev_student_reps, stringified_student_id);
-                                strcat(prev_student_reps, "]");
-                                break;
+                                strcat(prev_student_reps, ", ");
                             }
+
+                            strcat(prev_student_reps, student.name);
+                            strcat(prev_student_reps, " [");
+                            char stringified_student_id[5] = "";
+                            snprintf(stringified_student_id, sizeof(stringified_student_id), "%d", student.id);
+                            strcat(prev_student_reps, stringified_student_id);
+                            strcat(prev_student_reps, "]");
+                            break;
                         }
                     }
+                }
 
-                    char new_student_reps[2048] = "";
-                    for (int i = 0; i < club.student_rep_count; i++)
-                    {
-                        club.student_rep_ids[i] = 0;
-                    }
-                    club.student_rep_count = 0;
-                    while (true)
-                    {
-                        print_greeting();
-                        printf("Enter a comma-separated list of the IDs of the new student representatives for '%s' below. To confirm your choice, press [Enter].\n\n", club.name);
+                char new_student_reps[2048] = "";
+                for (int i = 0; i < club.student_rep_count; i++)
+                {
+                    club.student_rep_ids[i] = 0;
+                }
+                club.student_rep_count = 0;
+                while (true)
+                {
+                    print_greeting();
+                    printf("Enter a comma-separated list of the IDs of the new student representatives for '%s' below. To confirm your choice, press [Enter].\n\n", club.name);
 
-                        char *student_rep_ids = accept_variable_length_input();
-                        if (strcmp(student_rep_ids, "") != 0)
+                    char *student_rep_ids = accept_variable_length_input();
+                    if (strcmp(student_rep_ids, "") != 0)
+                    {
+                        char *student_rep_id = strtok(student_rep_ids, ", ");
+                        while (student_rep_id != NULL && club.student_rep_count < MAX_STUDENT_REPS_PER_CLUB)
                         {
-                            char *student_rep_id = strtok(student_rep_ids, ", ");
-                            while (student_rep_id != NULL && club.student_rep_count < MAX_STUDENT_REPS_PER_CLUB)
+                            bool is_duplicate = false;
+                            for (int i = 0; i < club.student_rep_count; i++)
                             {
-                                bool is_duplicate = false;
-                                for (int i = 0; i < club.student_rep_count; i++)
+                                if (atoi(student_rep_id) == club.student_rep_ids[i])
                                 {
-                                    if (atoi(student_rep_id) == club.student_rep_ids[i])
-                                    {
-                                        is_duplicate = true;
-                                        break;
-                                    }
+                                    is_duplicate = true;
+                                    break;
                                 }
-                                if (!is_duplicate)
+                            }
+                            if (!is_duplicate)
+                            {
+                                for (int i = 0; i < student_count; i++)
                                 {
-                                    for (int i = 0; i < student_count; i++)
-                                    {
-                                        struct Student student = students[i];
+                                    struct Student student = students[i];
 
-                                        if (student.id == atoi(student_rep_id))
+                                    if (student.id == atoi(student_rep_id))
+                                    {
+                                        club.student_rep_ids[club.student_rep_count++] = student.id;
+
+                                        bool is_member = false;
+                                        for (int j = 0; j < club.member_count; j++)
                                         {
-                                            club.student_rep_ids[club.student_rep_count++] = student.id;
-
-                                            bool is_member = false;
-                                            for (int j = 0; j < club.member_count; j++)
+                                            if (club.member_ids[j] == student.id)
                                             {
-                                                if (club.member_ids[j] == student.id)
-                                                {
-                                                    is_member = true;
-                                                }
+                                                is_member = true;
                                             }
-                                            if (!is_member)
-                                            {
-                                                clubs[club_pos].member_ids[club.member_count++] = student.id;
-                                                for (int j = 0; j < sizeof(student.club_memberships) / sizeof(int); j++)
-                                                {
-                                                    if (student.club_memberships[j] == 0)
-                                                    {
-                                                        students[i].club_memberships[j] = club.id;
-                                                        break;
-                                                    }
-                                                }
-                                            }
-
-                                            if (strcmp(new_student_reps, "") != 0)
-                                            {
-                                                strcat(new_student_reps, ", ");
-                                            }
-                                            strcat(new_student_reps, student.name);
-                                            strcat(new_student_reps, " [");
-                                            char stringified_student_id[5] = "";
-                                            snprintf(stringified_student_id, sizeof(stringified_student_id), "%d", student.id);
-                                            strcat(new_student_reps, stringified_student_id);
-                                            strcat(new_student_reps, "]");
                                         }
+                                        if (!is_member)
+                                        {
+                                            clubs[club_pos].member_ids[club.member_count++] = student.id;
+                                            for (int j = 0; j < sizeof(student.club_memberships) / sizeof(int); j++)
+                                            {
+                                                if (student.club_memberships[j] == 0)
+                                                {
+                                                    students[i].club_memberships[j] = club.id;
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        if (strcmp(new_student_reps, "") != 0)
+                                        {
+                                            strcat(new_student_reps, ", ");
+                                        }
+                                        strcat(new_student_reps, student.name);
+                                        strcat(new_student_reps, " [");
+                                        char stringified_student_id[5] = "";
+                                        snprintf(stringified_student_id, sizeof(stringified_student_id), "%d", student.id);
+                                        strcat(new_student_reps, stringified_student_id);
+                                        strcat(new_student_reps, "]");
                                     }
-
-                                    student_rep_id = strtok(NULL, ", ");
                                 }
-                            }
 
-                            if (club.student_rep_count > 0)
-                            {
-                                break;
+                                student_rep_id = strtok(NULL, ", ");
                             }
                         }
-                        free(student_rep_ids);
-                    }
 
-                    for (int i = 0; i < club.student_rep_count; i++)
-                    {
-                        clubs[club_pos].student_rep_ids[i] = club.student_rep_ids[i];
-                    }
-                    clubs[club_pos].member_count = club.member_count;
-                    clubs[club_pos].student_rep_count = club.student_rep_count;
-                    save_data_to_file();
-                    print_greeting();
-                    printf("The student representatives of '%s' have been updated to %s (previously %s). ", club.name, new_student_reps, prev_student_reps);
-                    break;
-
-                case '5':
-                    while (true)
-                    {
-                        print_greeting();
-                        printf("Enter the new password for club '%s' below. It must contain at least 8 characters.\n\n", club.name);
-                        printf("Password: ");
-                        char *password = accept_variable_length_input();
-                        if (strlen(password) < 8)
+                        if (club.student_rep_count > 0)
                         {
-                            free(password);
-                            password = NULL;
-                            continue;
-                        }
-
-                        print_greeting();
-                        printf("Enter the new password for club '%s' below. It must contain at least 8 characters.\n\n", club.name);
-                        printf("Password: ");
-                        for (int i = 0; i < strlen(password); i++)
-                        {
-                            printf("*");
-                        }
-                        printf("\n");
-                        printf("Confirm Password: ");
-                        char *password_confirmation = accept_variable_length_input();
-                        if (strcmp(password, password_confirmation) == 0)
-                        {
-                            clubs[club_pos].password_length = strlen(password) + 1;
-                            clubs[club_pos].password = malloc(club.password_length * sizeof(char));
-                            strcpy(clubs[club_pos].password, password);
-                            save_data_to_file();
-                            free(password);
-                            free(password_confirmation);
-                            password = NULL;
-                            password_confirmation = NULL;
                             break;
                         }
+                    }
+                    free(student_rep_ids);
+                }
+
+                for (int i = 0; i < club.student_rep_count; i++)
+                {
+                    clubs[club_pos].student_rep_ids[i] = club.student_rep_ids[i];
+                }
+                clubs[club_pos].member_count = club.member_count;
+                clubs[club_pos].student_rep_count = club.student_rep_count;
+                save_data_to_file();
+                print_greeting();
+                printf("The student representatives of '%s' have been updated to %s (previously %s). ", club.name, new_student_reps, prev_student_reps);
+                break;
+
+            case '5':
+                while (true)
+                {
+                    print_greeting();
+                    printf("Enter the new password for club '%s' below. It must contain at least 8 characters.\n\n", club.name);
+                    printf("Password: ");
+                    char *password = accept_variable_length_input();
+                    if (strlen(password) < 8)
+                    {
+                        free(password);
+                        password = NULL;
+                        continue;
+                    }
+
+                    print_greeting();
+                    printf("Enter the new password for club '%s' below. It must contain at least 8 characters.\n\n", club.name);
+                    printf("Password: ");
+                    for (int i = 0; i < strlen(password); i++)
+                    {
+                        printf("*");
+                    }
+                    printf("\n");
+                    printf("Confirm Password: ");
+                    char *password_confirmation = accept_variable_length_input();
+                    if (strcmp(password, password_confirmation) == 0)
+                    {
+                        clubs[club_pos].password_length = strlen(password) + 1;
+                        clubs[club_pos].password = malloc(club.password_length * sizeof(char));
+                        strcpy(clubs[club_pos].password, password);
+                        save_data_to_file();
                         free(password);
                         free(password_confirmation);
                         password = NULL;
                         password_confirmation = NULL;
+                        break;
                     }
-
-                    print_greeting();
-                    printf("The password of club '%s' has been successfully updated. ", club.name);
-                    break;
+                    free(password);
+                    free(password_confirmation);
+                    password = NULL;
+                    password_confirmation = NULL;
                 }
 
-                if (choice == '1' || choice == '2' || choice == '3' || choice == '4' || choice == '5')
-                {
-                    printf("Press [Q] to return to the club menu.");
-                    char user_input = '\0';
-                    while (user_input != 'q')
-                    {
-                        user_input = _getch();
-                    };
-                    break;
-                }
+                print_greeting();
+                printf("The password of club '%s' has been successfully updated. ", club.name);
+                break;
+            }
+
+            if (choice == '1' || choice == '2' || choice == '3' || choice == '4' || choice == '5')
+            {
+                prompt_return("the club menu");
+                break;
             }
         }
     }
@@ -726,7 +731,7 @@ void delete_club(struct Club club, int club_pos)
     printf("Please confirm whether you would like to permanently delete club '%s'. (y/n)\n", club.name);
     printf("Warning: This is an irreversible action. All data associated with club '%s' will be irrecoverably lost.\n", club.name);
     char confirmation = _getch();
-    if (tolower(confirmation) != 'y')
+    if (confirmation != 'y')
     {
         print_greeting();
         printf("Deletion of club '%s' cancelled.", club.name);
@@ -744,6 +749,20 @@ void delete_club(struct Club club, int club_pos)
                 }
                 struct Meeting placeholder_meeting = {0};
                 meetings[--meeting_count] = placeholder_meeting;
+            }
+        }
+
+        for (int i = 0; i < transaction_count; i++)
+        {
+            struct Transaction transaction = transactions[i];
+            if (transaction.club_id == club.id)
+            {
+                for (int j = i; j < transaction_count - 1; j++)
+                {
+                    transactions[j] = transactions[j + 1];
+                }
+                struct Transaction placeholder_transaction = {0};
+                transactions[--transaction_count] = placeholder_transaction;
             }
         }
 
@@ -785,14 +804,8 @@ void delete_club(struct Club club, int club_pos)
         clubs[--club_count] = placeholder_club;
         save_data_to_file();
         print_greeting();
-        printf("Successfully deleted club '%s'.", club.name);
-
-        printf(" Press [Q] to return to the previous menu.");
-        char user_input = '\0';
-        while (user_input != 'q')
-        {
-            user_input = _getch();
-        };
+        printf("Successfully deleted club '%s'. ", club.name);
+        prompt_return("the main menu");
     }
 }
 
@@ -805,7 +818,8 @@ void post_meeting(struct Club club, int club_pos)
     while (true)
     {
         print_greeting();
-        printf("> Summarize the meeting minutes in %d characters or less: ", MAX_MEETING_SUMMARY_LENGTH);
+        printf("POST MEETING FOR CLUB '%s'\n\n", club.name);
+        printf("> Summarize the meeting minutes (max %d characters): ", MAX_MEETING_SUMMARY_LENGTH);
         fgets(meeting.summary, sizeof(meeting.summary) + sizeof(char), stdin);
         meeting.summary[strlen(meeting.summary) - 1] = '\0';
         if (strlen(meeting.summary) > 0)
@@ -817,7 +831,8 @@ void post_meeting(struct Club club, int club_pos)
     while (true)
     {
         print_greeting();
-        printf("> Summarize the meeting minutes in %d characters or less: %s\n", MAX_MEETING_SUMMARY_LENGTH, meeting.summary);
+        printf("POST MEETING FOR CLUB '%s'\n\n", club.name);
+        printf("> Summarize the meeting minutes (max %d characters): %s\n", MAX_MEETING_SUMMARY_LENGTH, meeting.summary);
         printf("> Date and Time (DD/MM/YYYY HH:MM): ");
 
         char user_input[17];
@@ -852,8 +867,8 @@ void post_meeting(struct Club club, int club_pos)
 
     meeting = edit_attendance_sheet(club, meeting);
     meeting.id = ++clubs[club_pos].prev_meeting_id;
-    meetings[clubs[club_pos].meeting_count++] = meeting;
-    meeting_count++;
+    clubs[club_pos].meeting_count++;
+    meetings[meeting_count++] = meeting;
     save_data_to_file();
 
     print_greeting();
@@ -862,13 +877,7 @@ void post_meeting(struct Club club, int club_pos)
     printf("> Date and Time: %s", ctime(&meeting.time));
     printf("> Summary: %s\n", meeting.summary);
     printf("> Attendance: %d/%d P, %d/%d A\n\n", meeting.present_member_count, club.member_count, meeting.absent_member_count, club.member_count);
-
-    printf("Press [Q] to return to the club menu.");
-    char user_input = '\0';
-    while (user_input != 'q')
-    {
-        user_input = _getch();
-    };
+    prompt_return("the club menu");
 }
 
 struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
@@ -891,14 +900,13 @@ struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
 
     int cursor_position = 0;
     char choice = '\0';
-    while (choice != 'q')
+    while (choice != 'r')
     {
-
         print_greeting();
-        printf("EDIT ATTENDANCE SHEET\n\n");
+        printf("EDIT MEETING ATTENDANCE SHEET FOR CLUB '%s'\n\n", club.name);
         printf("- The \">\" symbol indicates which member is currently selected. Press the [W] and [S] keys to amend your current selection.\n");
         printf("- All members are initially marked as absent. Press [P] and [A] to mark the currently selected member as present and absent respectively.\n");
-        printf("- Press [Q] to confirm and save the attendance sheet.\n\n");
+        printf("- Press [R] to confirm and save the attendance sheet.\n\n");
 
         struct Student selected_member;
         bool selected_member_is_present = false;
@@ -1077,7 +1085,8 @@ void list_club_meetings(struct Club club)
             break;
         }
 
-        while (true)
+        char choice = '\0';
+        while (choice != 'r')
         {
             print_greeting();
             printf("MEETING INFORMATION\n\n", club.name);
@@ -1085,18 +1094,13 @@ void list_club_meetings(struct Club club)
             printf("> Date and Time: %s", ctime(&meeting.time));
             printf("> Summary: %s\n", meeting.summary);
             printf("> Attendance: %d/%d P; %d/%d A\n\n", meeting.present_member_count, club.member_count, meeting.absent_member_count, club.member_count);
-            printf("Press [A] to view and edit the attendance sheet. Press [Q] to return to the club menu.");
+            printf("Press [A] to view and edit the attendance sheet. Press [R] to return to the club menu.");
 
-            char choice = _getch();
             if (choice == 'a')
             {
                 meeting = edit_attendance_sheet(club, meeting);
                 meetings[meeting_pos] = meeting;
                 save_data_to_file();
-            }
-            else if (choice == 'q')
-            {
-                break;
             }
         }
     }

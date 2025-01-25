@@ -12,7 +12,6 @@
 #include "menu_system.h"
 
 int student_count = 0;
-
 int prev_student_id = 0;
 
 struct Student students[MAX_STUDENTS] = {{0}};
@@ -35,19 +34,21 @@ void manage_students()
             return;
         }
 
-        print_greeting();
-        printf("MANAGE STUDENTS\n\n");
-        printf("Type in either the student's full name or ID then press [Enter]. Otherwise, leave the field blank and press [Enter] to return to the main menu.\n\n");
-        for (int i = 0; i < student_count; i++)
-        {
-            struct Student student = students[i];
-            printf("[%d] %s\n", student.id, student.name);
-        }
-
         struct Student student = {0};
         int student_pos = -1;
         while (student.id == 0)
         {
+            print_greeting();
+            printf("MANAGE STUDENTS\n\n");
+            printf("Type in either the student's full name or ID then press [Enter]. Otherwise, leave the field blank and press [Enter] to return to the main menu.\n\n");
+
+            for (int i = 0; i < student_count; i++)
+            {
+                struct Student student = students[i];
+                printf("[%d] %s\n", student.id, student.name);
+            }
+            printf("\n");
+
             char student_lookup_query[MAX_STUDENT_NAME_LENGTH];
             fgets(student_lookup_query, sizeof(student_lookup_query) + sizeof(char), stdin);
             student_lookup_query[strlen(student_lookup_query) - 1] = '\0';
@@ -89,7 +90,7 @@ void manage_students()
         }
 
         char choice = '\0';
-        while (choice != 'q')
+        while (choice != 'r')
         {
             print_greeting();
             printf("MANAGE STUDENT '%s'\n\n", student.name);
@@ -98,7 +99,7 @@ void manage_students()
             printf("[1] View Information\n");
             printf("[2] Update Information\n");
             printf("[3] Delete\n");
-            printf("[Q] Return\n");
+            printf("[R] Return\n");
 
             choice = _getch();
             switch (choice)
@@ -112,7 +113,7 @@ void manage_students()
 
             case '3':
                 delete_student(student, student_pos);
-                choice = 'q';
+                choice = 'r';
                 break;
             }
         }
@@ -161,12 +162,7 @@ void view_student_info(struct Student student)
     }
     printf("\n\n");
 
-    printf("Press [Q] to return to the club menu.");
-    char user_input = '\0';
-    while (user_input != 'q')
-    {
-        user_input = _getch();
-    };
+    prompt_return("the student menu");
 }
 
 void register_student()
@@ -181,6 +177,7 @@ void register_student()
     while (true)
     {
         print_greeting();
+        printf("REGISTER NEW STUDENT\n\n");
         printf("Name: ");
         fgets(student.name, sizeof(student.name) + sizeof(char), stdin);
         student.name[strlen(student.name) - 1] = '\0';
@@ -192,6 +189,7 @@ void register_student()
     while (true)
     {
         print_greeting();
+        printf("REGISTER NEW STUDENT\n\n");
         printf("Name: %s\n", student.name);
         printf("Class: ");
 
@@ -205,6 +203,7 @@ void register_student()
     while (true)
     {
         print_greeting();
+        printf("REGISTER NEW STUDENT\n\n");
         printf("Name: %s\n", student.name);
         printf("Class: %s\n", student.class);
         printf("Email Address: ");
@@ -218,15 +217,17 @@ void register_student()
     }
 
     print_greeting();
-    printf("Confirm registration of student '%s'? (y/n) ", student.name);
-    char confirmation = '\0';
-    scanf("%c", &confirmation);
-    printf("\n");
-    if (tolower(confirmation) != 'y')
+    printf("REGISTER NEW STUDENT\n\n");
+    printf("Name: %s\n", student.name);
+    printf("Class: %s\n", student.class);
+    printf("Email Address: %s\n\n", student.email_address);
+    printf("Confirm registration of student? (y/n) ", student.name);
+    char confirmation = _getch();
+    if (confirmation != 'y')
     {
         print_greeting();
         printf("Registration of student '%s' cancelled. ", student.name);
-        return prompt_return_to_main_menu();
+        return prompt_return("the main menu");
     }
     student.is_active = true;
     student.registered_at = time(NULL);
@@ -235,7 +236,7 @@ void register_student()
     save_data_to_file();
 
     print_greeting();
-    printf("Student successfully registered.\n");
+    printf("New student successfully registered.\n");
     printf("> ID: %d\n", student.id);
     printf("> Name: %s\n", student.name);
     printf("> Class: %s\n", student.class);
@@ -253,7 +254,7 @@ void delete_student(struct Student student, int student_pos)
     printf("Please confirm whether you would like to permanently delete student '%s'. (y/n)\n", student.name);
     printf("Warning: This is an irreversible action. All data associated with student '%s' will be irrecoverably lost.\n", student.name);
     char confirmation = _getch();
-    if (tolower(confirmation) != 'y')
+    if (confirmation != 'y')
     {
         print_greeting();
         printf("Deletion of student '%s' cancelled.", student.name);
@@ -292,13 +293,8 @@ void delete_student(struct Student student, int student_pos)
             if (is_student_rep && club.student_rep_count == 1)
             {
                 print_greeting();
-                printf("Deletion failed because '%s' is currently the only student representative of the club '%s'. Please designate another student representative and try again. Press [Q] to return to the club menu.", student.name, club.name);
-                char user_input = '\0';
-                while (user_input != 'q')
-                {
-                    user_input = _getch();
-                };
-                return;
+                printf("Deletion failed because '%s' is currently the only student representative of the club '%s'. Please designate another student representative and try again. ", student.name, club.name);
+                return prompt_return("the student menu");
             }
 
             for (int j = 0; j < club.member_count; j++)
@@ -393,10 +389,5 @@ void delete_student(struct Student student, int student_pos)
         printf("Successfully deleted student '%s'.", student.name);
     }
 
-    printf(" Press [Q] to return to the previous menu.");
-    char user_input = '\0';
-    while (user_input != 'q')
-    {
-        user_input = _getch();
-    };
+    prompt_return("the student menu");
 }

@@ -3,17 +3,6 @@
 
 #ifndef CLUBS_H
 #define CLUBS_H
-void register_club();
-void manage_clubs();
-void view_club_info();
-void view_club_members();
-void update_club();
-void delete_club();
-void post_meeting();
-void list_club_meetings();
-struct Meeting edit_attendance_sheet();
-void save_data_to_file();
-void load_data_from_file();
 
 #define MAX_CLUBS 1024
 #define MAX_CLUB_NAME_LENGTH 255
@@ -23,7 +12,6 @@ void load_data_from_file();
 #define MAX_STUDENT_REPS_PER_CLUB 1024
 #define MAX_MEETINGS 8192
 #define MAX_MEETING_SUMMARY_LENGTH 2048
-
 struct Meeting
 {
     int id;
@@ -51,7 +39,19 @@ struct Club
     time_t registered_at;
     int meeting_count;
     int prev_meeting_id;
+    int transaction_count;
+    int prev_transaction_id;
 };
+
+void manage_clubs();
+void register_club();
+void view_club_info(struct Club club);
+void view_club_members(struct Club club);
+void update_club(struct Club club, int club_pos);
+void delete_club(struct Club club, int club_pos);
+void post_meeting(struct Club club, int club_pos);
+struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting);
+void list_club_meetings(struct Club club);
 
 extern struct Club clubs[MAX_CLUBS];
 extern struct Meeting meetings[MAX_MEETINGS];

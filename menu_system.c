@@ -1,5 +1,4 @@
 #include <conio.h>
-#include <ctype.h>
 #include <math.h>
 #include <stdio.h>
 #include <Windows.h>
@@ -86,7 +85,6 @@ char *accept_variable_length_input()
 void show_main_menu()
 {
     char choice = '\0';
-
     while (choice != 'q')
     {
         print_greeting();
@@ -122,12 +120,12 @@ void show_main_menu()
     printf("\n\nQuitting program...");
 }
 
-void prompt_return_to_main_menu()
+void prompt_return(char *to)
 {
-    printf("Press [Q] to return to the main menu.");
-    char input;
-    while (input != 'q')
+    printf("Press [R] to return to %s.", to);
+    char user_input;
+    while (user_input != 'r')
     {
-        input = _getch();
+        user_input = _getch();
     };
 }

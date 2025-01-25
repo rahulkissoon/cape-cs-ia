@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <conio.h>
+#include "accounting.h"
 #include "auth.h"
 #include "database.h"
 #include "menu_system.h"
@@ -47,6 +48,11 @@ void save_data_to_file()
         fwrite(clubs[i].password, sizeof(char), clubs[i].password_length, dataFilePtr);
     }
 
+    for (int i = 0; i < transaction_count; i++)
+    {
+        fwrite(&transactions[i], sizeof(struct Transaction), 1, dataFilePtr);
+    }
+
     for (int i = 0; i < meeting_count; i++)
     {
         fwrite(&meetings[i], sizeof(struct Meeting), 1, dataFilePtr);
@@ -87,6 +93,13 @@ void load_data_from_file()
             fread(clubs[i].password, sizeof(char), clubs[i].password_length, dataFilePtr);
 
             meeting_count += clubs[i].meeting_count;
+            transaction_count += clubs[i].transaction_count;
+        }
+
+        transactions = malloc(transaction_count * sizeof(struct Transaction));
+        for (int i = 0; i < transaction_count; i++)
+        {
+            fread(&transactions[i], sizeof(struct Transaction), 1, dataFilePtr);
         }
 
         for (int i = 0; i < meeting_count; i++)

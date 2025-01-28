@@ -303,7 +303,7 @@ void register_club()
         printf("> Description: %s\n", club.description);
         printf("> Student Representatives: %s\n", student_reps);
 
-        printf("> Password: ");
+        printf("> Password (min %d characters): ", MIN_PASSWORD_LENGTH);
         char *password = accept_variable_length_input();
         if (strlen(password) < MIN_PASSWORD_LENGTH)
         {
@@ -859,7 +859,7 @@ void update_club_info(struct Club club, int club_pos)
 
             printf("After typing the new name for '%s', press [Enter] to confirm.\n\n", club.name);
             char new_name[MAX_CLUB_NAME_LENGTH] = "";
-            while (strcmp(new_name, ""))
+            while (strcmp(new_name, "") == 0)
             {
                 fgets(new_name, sizeof(new_name) + sizeof(char), stdin);
                 new_name[strlen(new_name) - 1] = '\0';
@@ -1050,7 +1050,7 @@ void update_club_info(struct Club club, int club_pos)
             while (true)
             {
                 print_greeting();
-                printf("Enter the new password for club '%s' below. It must contain at least 8 characters.\n\n", club.name);
+                printf("Enter the new password for club '%s' below. It must contain at least %d characters.\n\n", club.name, MIN_PASSWORD_LENGTH);
                 printf("Password: ");
                 char *password = accept_variable_length_input();
                 if (strlen(password) < MIN_PASSWORD_LENGTH)
@@ -1061,7 +1061,7 @@ void update_club_info(struct Club club, int club_pos)
                 }
 
                 print_greeting();
-                printf("Enter the new password for club '%s' below. It must contain at least 8 characters.\n\n", club.name);
+                printf("Enter the new password for club '%s' below. It must contain at least %d characters.\n\n", club.name, MIN_PASSWORD_LENGTH);
                 printf("Password: ");
                 for (int i = 0; i < strlen(password); i++)
                 {
@@ -1460,7 +1460,7 @@ void list_club_meetings(struct Club club)
     int j = 0;
     for (int i = 0; i < meeting_count; i++)
     {
-        if (meetings[i].id == club.id)
+        if (meetings[i].club_id == club.id)
         {
             club_meetings[j] = meetings[i];
             j++;
@@ -1612,6 +1612,7 @@ void list_club_meetings(struct Club club)
             }
             free(rows[i]);
         }
+        free(rows);
 
         printf("\n\n");
 
@@ -1668,4 +1669,6 @@ void list_club_meetings(struct Club club)
             }
         }
     }
+
+    free(club_meetings);
 }

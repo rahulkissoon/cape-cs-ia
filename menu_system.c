@@ -129,7 +129,7 @@ void show_main_menu()
 void prompt_return(char *to)
 {
     printf("Press [R] to return to %s.", to);
-    char user_input;
+    char user_input = '\0';
     while (user_input != 'r')
     {
         user_input = _getch();
@@ -220,7 +220,7 @@ void print_table(int total_columns, int total_rows, int *column_widths, int tota
             }
         }
 
-        if (total_footer_rows > 0)
+        if (i < total_rows - 1 || total_footer_rows > 0)
         {
             printf("|");
             for (int j = 0; j < table_width - 2; j++)

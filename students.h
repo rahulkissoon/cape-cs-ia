@@ -23,6 +23,7 @@ extern struct Student *students;
 void manage_students();
 void view_student_info(struct Student student);
 void register_student();
+void update_student_info(struct Student student, int student_pos);
 void delete_student(struct Student student, int student_pos);
 
 extern int prev_student_id;

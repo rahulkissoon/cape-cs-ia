@@ -92,6 +92,7 @@ void manage_students()
         char choice = '\0';
         while (choice != 'r')
         {
+            student = students[student_pos];
             print_greeting();
             printf("MANAGE STUDENT '%s'\n\n", student.name);
             printf("Press the key (indicated in brackets) corresponding to one of the options presented below to continue.\n\n");
@@ -109,6 +110,7 @@ void manage_students()
                 break;
 
             case '2':
+                update_student_info(student, student_pos);
                 break;
 
             case '3':
@@ -127,6 +129,7 @@ void view_student_info(struct Student student)
     printf("VIEW STUDENT INFORMATION\n\n");
     printf("> Name: %s\n", student.name);
     printf("> ID: %d\n", student.id);
+    printf("> Class: %s\n", student.class);
     printf("> Email Address: %s\n", student.email_address);
     printf("> Registered At: %s\n", format_time_t(student.registered_at));
     printf("> Club Memberships: ");
@@ -163,6 +166,85 @@ void view_student_info(struct Student student)
     printf("\n\n");
 
     prompt_return("the student menu");
+}
+
+void update_student_info(struct Student student, int student_pos)
+{
+    char choice = '\0';
+    while (choice != 'r')
+    {
+        print_greeting();
+        printf("UPDATE STUDENT INFORMATION\n\n");
+        printf("Press the key (indicated in brackets) corresponding to one of the options presented below to continue.\n");
+        printf("[1] Name\n");
+        printf("[2] Class\n");
+        printf("[3] Email Address\n");
+
+        choice = _getch();
+
+        switch (choice)
+        {
+        case '1':
+            print_greeting();
+
+            printf("After typing the new name for %s, press [Enter] to confirm.\n\n", student.name);
+            char new_name[MAX_STUDENT_NAME_LENGTH] = "";
+            while (strcmp(new_name, "") == 0)
+            {
+                fgets(new_name, sizeof(new_name) + sizeof(char), stdin);
+                new_name[strlen(new_name) - 1] = '\0';
+            }
+            char old_name[MAX_STUDENT_NAME_LENGTH];
+            strcpy(old_name, student.name);
+            strcpy(students[student_pos].name, new_name);
+            save_data_to_file();
+            print_greeting();
+            printf("Successfully updated the name of %s (previously '%s'). ", new_name, old_name);
+            break;
+
+        case '2':
+            print_greeting();
+
+            printf("After typing the new class for %s, press [Enter] to confirm.\n\n", student.name);
+            char new_class[MAX_CLASS_NAME_LENGTH] = "";
+            while (strcmp(new_class, "") == 0)
+            {
+                fgets(new_class, sizeof(new_class) + sizeof(char), stdin);
+                new_class[strlen(new_class) - 1] = '\0';
+            }
+            char old_class[MAX_CLASS_NAME_LENGTH];
+            strcpy(old_class, student.class);
+            strcpy(students[student_pos].class, new_class);
+            save_data_to_file();
+            print_greeting();
+            printf("Successfully updated the %s's class to %s (previously '%s'). ", student.name, new_class, old_class);
+            break;
+
+        case '3':
+            print_greeting();
+
+            printf("After typing the new email address for %s, press [Enter] to confirm.\n\n", student.name);
+            char new_email_address[MAX_EMAIL_ADDRESS_LENGTH] = "";
+            while (strcmp(new_email_address, "") == 0)
+            {
+                fgets(new_email_address, sizeof(new_email_address) + sizeof(char), stdin);
+                new_email_address[strlen(new_email_address) - 1] = '\0';
+            }
+            char old_email_address[MAX_EMAIL_ADDRESS_LENGTH];
+            strcpy(old_email_address, student.email_address);
+            strcpy(students[student_pos].email_address, new_email_address);
+            save_data_to_file();
+            print_greeting();
+            printf("Successfully updated the %s's email address to %s (previously %s). ", student.name, new_email_address, old_email_address);
+            break;
+        }
+
+        if (choice == '1' || choice == '2' || choice == '3')
+        {
+            prompt_return("the student menu");
+            break;
+        }
+    }
 }
 
 void register_student()
@@ -221,7 +303,7 @@ void register_student()
     printf("Name: %s\n", student.name);
     printf("Class: %s\n", student.class);
     printf("Email Address: %s\n\n", student.email_address);
-    printf("Confirm registration of student? (y/n) ", student.name);
+    printf("Confirm registration of student? (y/n)", student.name);
     char confirmation = _getch();
     if (confirmation != 'y')
     {

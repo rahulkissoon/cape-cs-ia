@@ -244,7 +244,7 @@ void register_club()
         printf("> Name: %s\n", club.name);
         printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
         printf("> Description: %s\n", club.description);
-        printf("> Student Representatives: ");
+        printf("> Student Representatives' IDs: ");
 
         char *student_rep_ids = accept_variable_length_input();
         if (strcmp(student_rep_ids, "") != 0)
@@ -1446,8 +1446,8 @@ void list_club_meetings(struct Club club)
 
     if (club.meeting_count == 0)
     {
-        printf("No meetings have yet been posted for club '%s'. Press any key to return to the club menu.", club.name);
-        _getch();
+        printf("No meetings have yet been posted for club '%s'. ", club.name);
+        prompt_return("the club menu");
         return;
     }
 

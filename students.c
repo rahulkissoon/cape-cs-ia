@@ -30,9 +30,8 @@ void manage_students()
         if (student_count == 0)
         {
             print_greeting();
-            printf("There are no students registered. Press any key to return to the previous menu.");
-            _getch();
-            return;
+            printf("There are no students registered. ");
+            return prompt_return("the main menu");
         }
 
         struct Student student = {0};
@@ -249,8 +248,7 @@ void register_student()
     printf("> Email Address: %s\n", student.email_address);
     printf("> Registered At: %s\n", format_time_t(student.registered_at));
     printf("> Club Memberships: None\n\n");
-    printf("Press any key to return to the previous menu.");
-    _getch();
+    prompt_return("the main menu");
 }
 
 void delete_student(struct Student student, int student_pos)

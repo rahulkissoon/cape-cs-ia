@@ -10,11 +10,12 @@
 #include "students.h"
 #include "database.h"
 #include "menu_system.h"
+#include "util.h"
 
 int student_count = 0;
 int prev_student_id = 0;
 
-struct Student students[MAX_STUDENTS] = {{0}};
+struct Student *students;
 
 void manage_students()
 {
@@ -128,7 +129,7 @@ void view_student_info(struct Student student)
     printf("> Name: %s\n", student.name);
     printf("> ID: %d\n", student.id);
     printf("> Email Address: %s\n", student.email_address);
-    printf("> Registered At: %s", ctime(&student.registered_at));
+    printf("> Registered At: %s\n", format_time_t(student.registered_at));
     printf("> Club Memberships: ");
     if (student.club_memberships[0] == 0)
     {
@@ -144,7 +145,7 @@ void view_student_info(struct Student student)
                 break;
             }
 
-            struct Club club;
+            struct Club club = {0};
             for (int j = 0; j < club_count; j++)
             {
                 if (clubs[j].id == club_id)
@@ -173,7 +174,7 @@ void register_student()
         return;
     }
 
-    struct Student student;
+    struct Student student = {0};
     while (true)
     {
         print_greeting();
@@ -229,9 +230,14 @@ void register_student()
         printf("Registration of student '%s' cancelled. ", student.name);
         return prompt_return("the main menu");
     }
-    student.is_active = true;
     student.registered_at = time(NULL);
     student.id = ++prev_student_id;
+    students = realloc(students, (student_count + 1) * sizeof(struct Student));
+    if (students == NULL)
+    {
+        printf("Reallocation of %lld bytes of memory failed", (student_count + 1) * sizeof(struct Student));
+        exit(1);
+    }
     students[student_count++] = student;
     save_data_to_file();
 
@@ -241,8 +247,7 @@ void register_student()
     printf("> Name: %s\n", student.name);
     printf("> Class: %s\n", student.class);
     printf("> Email Address: %s\n", student.email_address);
-    printf("> Activity Status: Active\n");
-    printf("> Registered At: %s", ctime(&student.registered_at));
+    printf("> Registered At: %s\n", format_time_t(student.registered_at));
     printf("> Club Memberships: None\n\n");
     printf("Press any key to return to the previous menu.");
     _getch();
@@ -268,7 +273,7 @@ void delete_student(struct Student student, int student_pos)
                 break;
             }
 
-            struct Club club;
+            struct Club club = {0};
             int club_pos;
             for (int j = 0; j < club_count; j++)
             {
@@ -381,12 +386,17 @@ void delete_student(struct Student student, int student_pos)
             }
         }
 
-        struct Student placeholder_student = {0};
-        students[--student_count] = placeholder_student;
+        students[--student_count] = (struct Student){0};
+        students = realloc(students, (student_count == 0 ? 1 : student_count) * sizeof(struct Student));
+        if (students == NULL)
+        {
+            printf("Reallocation of %lld bytes of memory failed", student_count * sizeof(struct Student));
+            exit(1);
+        }
         save_data_to_file();
 
         print_greeting();
-        printf("Successfully deleted student '%s'.", student.name);
+        printf("Successfully deleted student '%s'. ", student.name);
     }
 
     prompt_return("the student menu");

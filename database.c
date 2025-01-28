@@ -96,12 +96,18 @@ void load_data_from_file()
             transaction_count += clubs[i].transaction_count;
         }
 
-        transactions = malloc(transaction_count * sizeof(struct Transaction));
+        transactions = malloc((transaction_count == 0 ? 1 : transaction_count) * sizeof(struct Transaction));
         for (int i = 0; i < transaction_count; i++)
         {
             fread(&transactions[i], sizeof(struct Transaction), 1, dataFilePtr);
         }
 
+        meetings = malloc((meeting_count == 0 ? 1 : meeting_count) * sizeof(struct Meeting));
+        if (meetings == NULL)
+        {
+            printf("Allocation of %lld bytes of memory failed", meeting_count * sizeof(struct Meeting));
+            exit(1);
+        }
         for (int i = 0; i < meeting_count; i++)
         {
             fread(&meetings[i], sizeof(struct Meeting), 1, dataFilePtr);
@@ -109,6 +115,12 @@ void load_data_from_file()
 
         fread(&student_count, sizeof(int), 1, dataFilePtr);
         fread(&prev_student_id, sizeof(int), 1, dataFilePtr);
+        students = malloc((student_count == 0 ? 1 : student_count) * sizeof(struct Student));
+        if (students == NULL)
+        {
+            printf("Allocation of %lld bytes of memory failed", student_count * sizeof(struct Student));
+            exit(1);
+        }
         for (int i = 0; i < student_count; i++)
         {
             fread(&students[i], sizeof(struct Student), 1, dataFilePtr);
@@ -131,7 +143,7 @@ void first_time_setup()
         {
             printf("Set Administrator Password: ");
             admin_password = accept_variable_length_input();
-            if (strlen(admin_password) < 8)
+            if (strlen(admin_password) < MIN_PASSWORD_LENGTH)
             {
                 free(admin_password);
                 admin_password = NULL;

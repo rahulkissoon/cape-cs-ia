@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "auth.h"
+#include "database.h"
 #include "menu_system.h"
 
 char *admin_password = NULL;
@@ -36,4 +37,56 @@ bool prompt_authorization(char *action_name, char *password, enum AuthorizationL
         _getch();
     };
     return is_authorized;
+}
+
+void change_admin_password()
+{
+    bool is_authorized = prompt_authorization("Changing the administrator password", admin_password, ADMIN, "the main menu");
+    if (!is_authorized)
+    {
+        return;
+    }
+
+    while (true)
+    {
+        print_greeting();
+        printf("Enter the new administrator password below. It must contain at least 8 characters.\n\n");
+        printf("Password: ");
+        char *password = accept_variable_length_input();
+        if (strlen(password) < MIN_PASSWORD_LENGTH)
+        {
+            free(password);
+            password = NULL;
+            continue;
+        }
+
+        print_greeting();
+        printf("Enter the new administrator password below. It must contain at least 8 characters.\n\n");
+        printf("Password: ");
+        for (int i = 0; i < strlen(password); i++)
+        {
+            printf("*");
+        }
+        printf("\n");
+        printf("Confirm Password: ");
+        char *password_confirmation = accept_variable_length_input();
+        if (strcmp(password, password_confirmation) == 0)
+        {
+            strcpy(admin_password, password);
+            save_data_to_file();
+            free(password);
+            free(password_confirmation);
+            password = NULL;
+            password_confirmation = NULL;
+            break;
+        }
+        free(password);
+        free(password_confirmation);
+        password = NULL;
+        password_confirmation = NULL;
+    }
+
+    print_greeting();
+    printf("The administrator password has been successfully changed. ");
+    prompt_return("the main menu");
 }

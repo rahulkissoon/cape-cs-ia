@@ -1,12 +1,6 @@
 #include <stdio.h>
 #include <time.h>
 
-void clear_input_buffer()
-{
-    while (getchar() != '\n')
-        ;
-}
-
 char *format_time_t(time_t time)
 {
     struct tm *tm = localtime(&time);

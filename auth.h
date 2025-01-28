@@ -4,6 +4,8 @@
 
 #ifndef AUTH_H
 #define AUTH_H
+#define MIN_PASSWORD_LENGTH 8
+
 extern char *admin_password;
 
 enum AuthorizationLevel
@@ -13,4 +15,5 @@ enum AuthorizationLevel
 };
 
 bool prompt_authorization(char *action_name, char *password, enum AuthorizationLevel authorization_level, char *return_to);
+void change_admin_password();
 #endif

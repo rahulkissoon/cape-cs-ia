@@ -4,11 +4,10 @@
 #ifndef STUDENTS_H
 #define STUDENTS_H
 
-#define MAX_STUDENTS 1024
 #define MAX_STUDENT_NAME_LENGTH 256
 #define MAX_CLASS_NAME_LENGTH 256
 #define MAX_EMAIL_ADDRESS_LENGTH 320
-#define MAX_CLUB_MEMBERSHIPS 1024
+#define MAX_CLUB_MEMBERSHIPS 100
 
 struct Student
 {
@@ -16,11 +15,10 @@ struct Student
     char name[MAX_STUDENT_NAME_LENGTH];
     char class[MAX_CLASS_NAME_LENGTH];
     char email_address[MAX_EMAIL_ADDRESS_LENGTH];
-    bool is_active;
     int club_memberships[MAX_CLUB_MEMBERSHIPS];
     time_t registered_at;
 };
-extern struct Student students[MAX_STUDENTS];
+extern struct Student *students;
 
 void manage_students();
 void view_student_info(struct Student student);

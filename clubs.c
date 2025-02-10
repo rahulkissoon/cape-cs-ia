@@ -9,7 +9,7 @@
 #include "auth.h"
 #include "menu_system.h"
 #include "clubs.h"
-#include "database.h"
+#include "core.h"
 #include "students.h"
 #include "util.h"
 
@@ -150,12 +150,6 @@ void manage_clubs()
 
 void register_club()
 {
-    bool is_authorized = prompt_authorization("Registering a new club", admin_password, ADMIN, "the main menu");
-    if (!is_authorized)
-    {
-        return;
-    }
-
     print_greeting();
     printf("REGISTER NEW CLUB\n\n");
 
@@ -374,15 +368,15 @@ void register_club()
     {
         for (int j = 0; j < club.student_rep_count; j++)
         {
-            if (students[j].id == club.student_rep_ids[i])
+            if (students[i].id == club.student_rep_ids[j])
             {
-                club.member_ids[club.member_count++] = club.student_rep_ids[i];
-                struct Student student = students[j];
+                club.member_ids[club.member_count++] = club.student_rep_ids[j];
+                struct Student student = students[i];
                 for (int k = 0; k < sizeof(student.club_memberships) / sizeof(int); k++)
                 {
                     if (student.club_memberships[k] == 0)
                     {
-                        students[j].club_memberships[k] = club.id;
+                        students[i].club_memberships[k] = club.id;
                         break;
                     }
                 }
@@ -1201,6 +1195,17 @@ void post_meeting(struct Club club, int club_pos)
 
     struct Meeting meeting = {0};
     meeting.club_id = club.id;
+
+    struct Meeting prev_meeting = {0};
+    for (int i = meeting_count - 1; i >= 0; i++)
+    {
+        if (meetings[i].club_id == club.id)
+        {
+            prev_meeting = meetings[i];
+            break;
+        }
+    }
+
     while (true)
     {
         print_greeting();
@@ -1231,7 +1236,7 @@ void post_meeting(struct Club club, int club_pos)
         tm.tm_mon -= 1;
         meeting.convened_at = mktime(&tm);
 
-        if (meeting.convened_at == (time_t)-1 || meeting.convened_at > time(NULL))
+        if (meeting.convened_at == (time_t)-1 || meeting.convened_at > time(NULL) || (prev_meeting.id > 0 && meeting.convened_at <= prev_meeting.convened_at))
         {
             continue;
         }

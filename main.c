@@ -2,7 +2,7 @@
 #include "menu_system.h"
 #include "clubs.h"
 #include "auth.h"
-#include "database.h"
+#include "core.h"
 
 int main()
 {

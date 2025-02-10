@@ -8,7 +8,7 @@
 #include "auth.h"
 #include "clubs.h"
 #include "students.h"
-#include "database.h"
+#include "core.h"
 #include "menu_system.h"
 #include "util.h"
 
@@ -19,12 +19,6 @@ struct Student *students;
 
 void manage_students()
 {
-    bool is_authorized = prompt_authorization("Viewing student information", admin_password, ADMIN, "the main menu");
-    if (!is_authorized)
-    {
-        return;
-    }
-
     while (true)
     {
         if (student_count == 0)
@@ -249,12 +243,6 @@ void update_student_info(struct Student student, int student_pos)
 
 void register_student()
 {
-    bool is_authorized = prompt_authorization("Registering a new student", admin_password, ADMIN, "the main menu");
-    if (!is_authorized)
-    {
-        return;
-    }
-
     struct Student student = {0};
     while (true)
     {

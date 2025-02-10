@@ -5,7 +5,7 @@
 #include <conio.h>
 #include "accounting.h"
 #include "auth.h"
-#include "database.h"
+#include "core.h"
 #include "menu_system.h"
 #include "clubs.h"
 #include "students.h"
@@ -186,9 +186,30 @@ void first_time_setup()
             break;
         }
     }
+
     print_greeting();
-    printf("School name successfully set to '%s'. Press any key to continue to the main menu.", school_name);
+    printf("School name successfully set to '%s'. Press any key to continue to complete setup and continue to the main menu.", school_name);
     _getch();
 
     save_data_to_file();
+}
+
+void change_school_name()
+{
+    print_greeting();
+    printf("Please enter the new name of your school. (Input will be truncated to first %d characters)\n\n", MAX_SCHOOL_NAME_LENGTH);
+    char prev_school_name[MAX_SCHOOL_NAME_LENGTH] = "";
+    strcpy(prev_school_name, school_name);
+    while (true)
+    {
+        fgets(school_name, sizeof(school_name) + sizeof(char), stdin);
+        school_name[strlen(school_name) - 1] = '\0';
+        if (strlen(school_name) > 0 && strlen(school_name) <= MAX_SCHOOL_NAME_LENGTH)
+        {
+            break;
+        }
+    }
+    print_greeting();
+    printf("School name successfully set to '%s' (previously '%s'). ", school_name, prev_school_name);
+    prompt_return("the main menu");
 }

@@ -6,7 +6,7 @@
 #include <time.h>
 #include "accounting.h"
 #include "clubs.h"
-#include "database.h"
+#include "core.h"
 #include "menu_system.h"
 #include "util.h"
 
@@ -226,6 +226,16 @@ void record_transaction(struct Club club, int club_pos)
         }
     }
 
+    struct Transaction prev_transaction = {0};
+    for (int i = transaction_count - 1; i >= 0; i++)
+    {
+        if (transactions[i].club_id == club.id)
+        {
+            prev_transaction = transactions[i];
+            break;
+        }
+    }
+
     while (true)
     {
         print_greeting();
@@ -243,7 +253,7 @@ void record_transaction(struct Club club, int club_pos)
         tm.tm_mon -= 1;
         transaction.time = mktime(&tm);
 
-        if (transaction.time == (time_t)-1 || transaction.time > time(NULL))
+        if (transaction.time == (time_t)-1 || transaction.time > time(NULL) || (prev_transaction.id > 0 && transaction.time <= prev_transaction.time))
         {
             continue;
         }

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "auth.h"
-#include "database.h"
+#include "core.h"
 #include "menu_system.h"
 
 char *admin_password = NULL;
@@ -45,12 +45,6 @@ bool prompt_authorization(char *action_name, char *password, enum AuthorizationL
 
 void change_admin_password()
 {
-    bool is_authorized = prompt_authorization("Changing the administrator password", admin_password, ADMIN, "the main menu");
-    if (!is_authorized)
-    {
-        return;
-    }
-
     while (true)
     {
         print_greeting();

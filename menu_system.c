@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "auth.h"
-#include "database.h"
+#include "core.h"
 #include "clubs.h"
 #include "menu_system.h"
 #include "students.h"
@@ -90,40 +90,67 @@ void show_main_menu()
     {
         print_greeting();
         printf("Press the key (indicated in brackets) corresponding to one of the options presented below to continue.\n\n");
-        printf("[1] Register New Club\n");
-        printf("[2] Manage Clubs\n");
-        printf("[3] Register New Student\n");
-        printf("[4] Manage Students\n");
-        printf("[5] Change Administrator Password\n");
+        printf("[1] Manage Clubs\n");
+        printf("[2] Administrator Panel\n");
         printf("[Q] Quit Program");
 
         choice = _getch();
         switch (choice)
         {
         case '1':
-            clear_console();
-            register_club();
-            break;
-        case '2':
-            clear_console();
             manage_clubs();
             break;
-        case '3':
-            clear_console();
-            register_student();
-            break;
-        case '4':
-            clear_console();
-            manage_students();
-            break;
 
-        case '5':
-            change_admin_password();
+        case '2':
+            show_admin_panel();
             break;
         }
     }
 
     printf("\n\nQuitting program...");
+}
+
+void show_admin_panel()
+{
+    bool is_authorized = prompt_authorization("Accessing the administrator panel", admin_password, ADMIN, "the main menu");
+    if (!is_authorized)
+    {
+        return;
+    }
+
+    char choice = '\0';
+    while (choice != 'r')
+    {
+        print_greeting();
+        printf("ADMINISTRATOR PANEL\n\n");
+        printf("Press the key (indicated in brackets) corresponding to one of the options presented below to continue.\n\n");
+        printf("[1] Register New Club\n");
+        printf("[2] Register New Student\n");
+        printf("[3] Manage Students\n");
+        printf("[4] Change Administrator Password\n");
+        printf("[5] Change School Name\n");
+        printf("[R] Return");
+
+        choice = _getch();
+        switch (choice)
+        {
+        case '1':
+            register_club();
+            break;
+        case '2':
+            register_student();
+            break;
+        case '3':
+            manage_students();
+            break;
+        case '4':
+            change_admin_password();
+            break;
+        case '5':
+            change_school_name();
+            break;
+        }
+    }
 }
 
 void prompt_return(char *to)

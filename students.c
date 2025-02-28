@@ -12,48 +12,49 @@
 #include "menu_system.h"
 #include "util.h"
 
+// These count variables are initialized to be 0, will be read later from the data file. These are global variables.
 int student_count = 0;
 int prev_student_id = 0;
 
-struct Student *students;
+struct Student *students = NULL; // Initializes students to be NULL, will be populated later. students is a global variable.
 
+// manage_students allows the user and the administrator to view, update the info of, and delete students.
 void manage_students()
 {
     while (true)
     {
-        if (student_count == 0)
+        if (student_count == 0) // Returns to the main menu if there are no students registered.
         {
             print_greeting();
-            printf("There are no students registered. ");
+            printf("There are no students registered. Register a student through the administrator panel. ");
             return prompt_return("the main menu");
         }
 
         struct Student student = {0};
-        int student_pos = -1;
+        int student_pos = -1; // Initializes the student position to -1 to escape the loop
         while (student.id == 0)
         {
             print_greeting();
             printf("MANAGE STUDENTS\n\n");
             printf("Type in either the student's full name or ID then press [Enter]. Otherwise, leave the field blank and press [Enter] to return to the main menu.\n\n");
 
-            for (int i = 0; i < student_count; i++)
+            for (int i = 0; i < student_count; i++) // Prints all students
             {
                 struct Student student = students[i];
                 printf("[%d] %s\n", student.id, student.name);
             }
             printf("\n");
 
-            char student_lookup_query[MAX_STUDENT_NAME_LENGTH];
-            fgets(student_lookup_query, sizeof(student_lookup_query) + sizeof(char), stdin);
-            student_lookup_query[strlen(student_lookup_query) - 1] = '\0';
-            if (strcmp(student_lookup_query, "") == 0)
+            char *student_lookup_query = read_variable_length_input();
+            if (strcmp(student_lookup_query, "") == 0) // Exits if nothing was entered
             {
+                free(student_lookup_query);
                 break;
             }
 
             for (int i = 0; i < student_count; i++)
             {
-                if (students[i].id == atoi(student_lookup_query))
+                if (students[i].id == atoi(student_lookup_query)) // If the student's ID matches the lookup query, the student is found.
                 {
                     student = students[i];
                     student_pos = i;
@@ -70,15 +71,16 @@ void manage_students()
                 {
                     student_name[j] = tolower(student_name[j]);
                 }
-                if (strcmp(student_name, student_lookup_query) == 0)
+                if (strcmp(student_name, student_lookup_query) == 0) // If the student's name matches the lookup query (case insensitive), the student is found.
                 {
                     student = students[i];
                     student_pos = i;
                     break;
                 }
             }
+            free(student_lookup_query);
         }
-        if (student_pos == -1)
+        if (student_pos == -1) // If student_pos is still -1 (implying that the user chose to exit), the loop is broken.
         {
             break;
         }
@@ -116,6 +118,7 @@ void manage_students()
     }
 }
 
+// view_student_info displays the information of a student, including their full name, ID, class, email address, registration date, and active club memberships.
 void view_student_info(struct Student student)
 {
     print_greeting();
@@ -151,7 +154,7 @@ void view_student_info(struct Student student)
                 }
             }
             printf("%s", club.name);
-            if (student.club_memberships[i + 1] != 0)
+            if (i < MAX_CLUB_MEMBERSHIPS - 1 && student.club_memberships[i + 1] != 0) // If this club membership is not the last, print a comma.
             {
                 printf(", ");
             }
@@ -162,6 +165,7 @@ void view_student_info(struct Student student)
     prompt_return("the student menu");
 }
 
+// update_student_info allows administrators to update the information of a student, including their full name, class, and email address.
 void update_student_info(struct Student student, int student_pos)
 {
     char choice = '\0';
@@ -178,62 +182,65 @@ void update_student_info(struct Student student, int student_pos)
 
         switch (choice)
         {
-        case '1':
+        case '1': // Updates the student's name
             print_greeting();
 
             printf("After typing the new name for %s, press [Enter] to confirm.\n\n", student.name);
-            char new_name[MAX_STUDENT_NAME_LENGTH] = "";
+            char *new_name = read_fixed_length_input(MAX_STUDENT_NAME_LENGTH);
             while (strcmp(new_name, "") == 0)
             {
-                fgets(new_name, sizeof(new_name) + sizeof(char), stdin);
-                new_name[strlen(new_name) - 1] = '\0';
+                free(new_name); // Frees the old pointer to new_name
+                char *new_name = read_fixed_length_input(MAX_STUDENT_NAME_LENGTH);
             }
             char old_name[MAX_STUDENT_NAME_LENGTH];
             strcpy(old_name, student.name);
             strcpy(students[student_pos].name, new_name);
+            free(new_name);
             save_data_to_file();
             print_greeting();
             printf("Successfully updated the name of %s (previously '%s'). ", new_name, old_name);
             break;
 
-        case '2':
+        case '2': // Updates the student's class
             print_greeting();
 
             printf("After typing the new class for %s, press [Enter] to confirm.\n\n", student.name);
-            char new_class[MAX_CLASS_NAME_LENGTH] = "";
+            char *new_class = read_fixed_length_input(MAX_CLASS_NAME_LENGTH);
             while (strcmp(new_class, "") == 0)
             {
-                fgets(new_class, sizeof(new_class) + sizeof(char), stdin);
-                new_class[strlen(new_class) - 1] = '\0';
+                free(new_class); // Frees the old pointer to new_class
+                char *new_class = read_fixed_length_input(MAX_CLASS_NAME_LENGTH);
             }
             char old_class[MAX_CLASS_NAME_LENGTH];
             strcpy(old_class, student.class);
             strcpy(students[student_pos].class, new_class);
+            free(new_class);
             save_data_to_file();
             print_greeting();
             printf("Successfully updated the %s's class to %s (previously '%s'). ", student.name, new_class, old_class);
             break;
 
-        case '3':
+        case '3': // Updates the student's email address
             print_greeting();
 
             printf("After typing the new email address for %s, press [Enter] to confirm.\n\n", student.name);
-            char new_email_address[MAX_EMAIL_ADDRESS_LENGTH] = "";
+            char *new_email_address = read_fixed_length_input(MAX_EMAIL_ADDRESS_LENGTH);
             while (strcmp(new_email_address, "") == 0)
             {
-                fgets(new_email_address, sizeof(new_email_address) + sizeof(char), stdin);
-                new_email_address[strlen(new_email_address) - 1] = '\0';
+                free(new_email_address); // Frees the old pointer to new_email_address
+                char *new_email_address = read_fixed_length_input(MAX_EMAIL_ADDRESS_LENGTH);
             }
             char old_email_address[MAX_EMAIL_ADDRESS_LENGTH];
             strcpy(old_email_address, student.email_address);
             strcpy(students[student_pos].email_address, new_email_address);
+            free(new_email_address);
             save_data_to_file();
             print_greeting();
             printf("Successfully updated the %s's email address to %s (previously %s). ", student.name, new_email_address, old_email_address);
             break;
         }
 
-        if (choice == '1' || choice == '2' || choice == '3')
+        if (choice == '1' || choice == '2' || choice == '3') // If the user entered a valid choice, prompt them to return to the student menu.
         {
             prompt_return("the student menu");
             break;
@@ -241,17 +248,19 @@ void update_student_info(struct Student student, int student_pos)
     }
 }
 
+// register_student allows the administrator to register a new student.
 void register_student()
 {
-    struct Student student = {0};
+    struct Student student = {0}; // Initializes a new, empty student struct
     while (true)
     {
         print_greeting();
         printf("REGISTER NEW STUDENT\n\n");
         printf("Name: ");
-        fgets(student.name, sizeof(student.name) + sizeof(char), stdin);
-        student.name[strlen(student.name) - 1] = '\0';
-        if (strlen(student.name) > 0)
+        char *student_name = read_fixed_length_input(MAX_STUDENT_NAME_LENGTH);
+        strcpy(student.name, student_name);
+        free(student_name);
+        if (strlen(student.name) > 0) // If the student's name is not empty, break out of the loop.
         {
             break;
         }
@@ -263,9 +272,10 @@ void register_student()
         printf("Name: %s\n", student.name);
         printf("Class: ");
 
-        fgets(student.class, sizeof(student.class) + sizeof(char), stdin);
-        student.class[strlen(student.class) - 1] = '\0';
-        if (strlen(student.class) > 0)
+        char *student_class = read_fixed_length_input(MAX_CLASS_NAME_LENGTH);
+        strcpy(student.class, student_class);
+        free(student_class);
+        if (strlen(student.class) > 0) // If the student's class is not empty, break out of the loop.
         {
             break;
         }
@@ -276,11 +286,12 @@ void register_student()
         printf("REGISTER NEW STUDENT\n\n");
         printf("Name: %s\n", student.name);
         printf("Class: %s\n", student.class);
-        printf("Email Address: ");
+        printf("Email Address (max %d characters): ", MAX_EMAIL_ADDRESS_LENGTH);
 
-        fgets(student.email_address, sizeof(student.email_address) + sizeof(char), stdin);
-        student.email_address[strlen(student.email_address) - 1] = '\0';
-        if (strlen(student.email_address) > 0)
+        char *student_email_address = read_fixed_length_input(MAX_EMAIL_ADDRESS_LENGTH);
+        strcpy(student.email_address, student_email_address);
+        free(student_email_address);
+        if (strlen(student.email_address) > 0 && strlen(student.email_address) <= MAX_EMAIL_ADDRESS_LENGTH) // If the student's email address is not empty and satisfies the maximum length condition, break out of the loop.
         {
             break;
         }
@@ -299,15 +310,15 @@ void register_student()
         printf("Registration of student '%s' cancelled. ", student.name);
         return prompt_return("the main menu");
     }
-    student.registered_at = time(NULL);
-    student.id = ++prev_student_id;
-    students = realloc(students, (student_count + 1) * sizeof(struct Student));
+    student.registered_at = time(NULL);                                         // Sets the student's registration date to the current time
+    student.id = ++prev_student_id;                                             // Increments the previous student ID global variable and sets the student ID
+    students = realloc(students, (student_count + 1) * sizeof(struct Student)); // Reallocates memory for the students array to accommodate the new student
     if (students == NULL)
     {
         printf("Reallocation of %lld bytes of memory failed", (student_count + 1) * sizeof(struct Student));
         exit(1);
     }
-    students[student_count++] = student;
+    students[student_count++] = student; // Saves the new student
     save_data_to_file();
 
     print_greeting();
@@ -321,9 +332,12 @@ void register_student()
     prompt_return("the main menu");
 }
 
+// delete_student allows the administrator to delete a student.
+// This function also handles the removal of the student from any clubs they are a member of, as well as the removal of the student from any meetings they are scheduled to attend.
 void delete_student(struct Student student, int student_pos)
 {
     print_greeting();
+    // Prompts the user to confirm whether they want to delete the student permanently
     printf("Please confirm whether you would like to permanently delete student '%s'. (y/n)\n", student.name);
     printf("Warning: This is an irreversible action. All data associated with student '%s' will be irrecoverably lost.\n", student.name);
     char confirmation = _getch();
@@ -336,14 +350,14 @@ void delete_student(struct Student student, int student_pos)
     {
         for (int i = 0; i < sizeof(student.club_memberships) / sizeof(int); i++)
         {
-            if (student.club_memberships[i] == 0)
+            if (student.club_memberships[i] == 0) // Breaks the loop once the student's club memberships are exhausted (indicated by a club ID of 0)
             {
                 break;
             }
 
             struct Club club = {0};
             int club_pos;
-            for (int j = 0; j < club_count; j++)
+            for (int j = 0; j < club_count; j++) // Iterates through the clubs to find the corresponding club
             {
                 if (clubs[j].id == student.club_memberships[i])
                 {
@@ -353,7 +367,7 @@ void delete_student(struct Student student, int student_pos)
                 }
             }
 
-            bool is_student_rep = false;
+            bool is_student_rep = false; // Indicates whether the student is a student representative of the club
             for (int j = 0; j < club.student_rep_count; j++)
             {
                 if (club.student_rep_ids[j] == student.id)
@@ -363,7 +377,7 @@ void delete_student(struct Student student, int student_pos)
                 }
             }
 
-            if (is_student_rep && club.student_rep_count == 1)
+            if (is_student_rep && club.student_rep_count == 1) // Deletion may only occur if the student is not representing any clubs.
             {
                 print_greeting();
                 printf("Deletion failed because '%s' is currently the only student representative of the club '%s'. Please designate another student representative and try again. ", student.name, club.name);
@@ -374,7 +388,7 @@ void delete_student(struct Student student, int student_pos)
             {
                 if (club.member_ids[j] == student.id)
                 {
-                    if (club.member_count > j + 1)
+                    if (club.member_count > j + 1) // If the student is not the last member of the club, shift the following members to the left
                     {
                         for (int k = j; k < club.member_count - 1; k++)
                         {
@@ -384,8 +398,7 @@ void delete_student(struct Student student, int student_pos)
                     break;
                 }
             }
-            clubs[club_pos].member_ids[club.member_count - 1] = 0;
-            clubs[club_pos].member_count--;
+            clubs[club_pos].member_ids[clubs[club_pos].member_count--] = 0; // Decrements the club's member count and sets the last member ID to 0 (the placeholder value)
 
             for (int j = 0; j < meeting_count; j++)
             {
@@ -396,33 +409,33 @@ void delete_student(struct Student student, int student_pos)
                     if (meeting.absent_member_ids[k] == student.id)
                     {
                         is_absent = true;
-                        if (meeting.absent_member_count > k + 1)
+                        if (meeting.absent_member_count > k + 1) // If the student is not the last absent member of the meeting, shift the following absent members to the left
                         {
                             for (int l = k; l < meeting.absent_member_count - 1; l++)
                             {
                                 meetings[j].absent_member_ids[l] = meeting.absent_member_ids[l + 1];
                             }
                         }
-                        meetings[j].absent_member_ids[--meetings[j].absent_member_count] = 0;
                         break;
                     }
                 }
                 if (is_absent)
                 {
+                    meetings[j].absent_member_ids[--meetings[j].absent_member_count] = 0; // Decrements the meeting's absent member count and sets the last absent member ID to 0 (the placeholder value)
                     continue;
                 }
                 for (int k = 0; k < meeting.present_member_count; k++)
                 {
                     if (meeting.present_member_ids[k] == student.id)
                     {
-                        if (meeting.present_member_count > k + 1)
+                        if (meeting.present_member_count > k + 1) // If the student is not the last present member of the meeting, shift the following present members to the left
                         {
                             for (int l = k; l < meeting.present_member_count - 1; l++)
                             {
                                 meetings[j].present_member_ids[l] = meeting.present_member_ids[l + 1];
                             }
                         }
-                        meetings[j].present_member_ids[--meetings[j].present_member_count] = 0;
+                        meetings[j].present_member_ids[--meetings[j].present_member_count] = 0; // Decrements the meeting's present member count and sets the last present member ID to 0 (the placeholder value)
                         break;
                     }
                 }
@@ -432,7 +445,7 @@ void delete_student(struct Student student, int student_pos)
             {
                 if (club.student_rep_ids[j] == student.id)
                 {
-                    if (club.student_rep_count > j + 1)
+                    if (club.student_rep_count > j + 1) // If the student is not the last student representative of the club, shift the following student representatives to the left
                     {
                         for (int k = j; k < club.student_rep_count - 1; k++)
                         {
@@ -442,11 +455,10 @@ void delete_student(struct Student student, int student_pos)
                     break;
                 }
             }
-            clubs[club_pos].student_rep_ids[club.student_rep_count - 1] = 0;
-            clubs[club_pos].student_rep_count--;
+            clubs[club_pos].student_rep_ids[clubs[club_pos].student_rep_count--] = 0; // Decrements the club's student representative count and sets the last student representative ID to 0 (the placeholder value)
         }
 
-        if (student_count > student_pos + 1)
+        if (student_count > student_pos + 1) // If the student is not the last student in the list, shift the following students to the left
         {
             for (int i = student_pos; i < student_count; i++)
             {
@@ -454,8 +466,8 @@ void delete_student(struct Student student, int student_pos)
             }
         }
 
-        students[--student_count] = (struct Student){0};
-        students = realloc(students, (student_count == 0 ? 1 : student_count) * sizeof(struct Student));
+        students[--student_count] = (struct Student){0};                                                 // Decrements the student count and sets the last student to an empty student struct
+        students = realloc(students, (student_count == 0 ? 1 : student_count) * sizeof(struct Student)); // Reallocates memory for the students array to accommodate the new student count
         if (students == NULL)
         {
             printf("Reallocation of %lld bytes of memory failed", student_count * sizeof(struct Student));

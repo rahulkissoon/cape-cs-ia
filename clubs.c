@@ -13,26 +13,28 @@
 #include "students.h"
 #include "util.h"
 
-struct Club clubs[MAX_CLUBS] = {{0}};
-struct Meeting *meetings;
+struct Club clubs[MAX_CLUBS] = {{0}}; // The clubs array is declared with MAX_CLUBS as its size. clubs is a global variable.
+struct Meeting *meetings = NULL;      // Initializes meetings to be NULL, will be populated later. meetings is a global variable.
 
+// These count variables are initialized to be 0, will be read later from the data file. These are global variables.
 int club_count = 0;
 int prev_club_id = 0;
 int meeting_count = 0;
 
+// manage_clubs allows the user and the administrator to manage clubs.
 void manage_clubs()
 {
     while (true)
     {
-        if (club_count == 0)
+        if (club_count == 0) // Administrators have to register a club through the administrator panel.
         {
             print_greeting();
             printf("No clubs have yet been registered. ");
             return prompt_return("the main menu");
         }
 
-        struct Club club = {0};
-        int club_pos = -1;
+        struct Club club = {0}; // Initializes the Club struct with default values
+        int club_pos = -1;      // -1 is the "escape value" to exit the loop
         while (club.id == 0)
         {
             print_greeting();
@@ -45,17 +47,16 @@ void manage_clubs()
             }
             printf("\n");
 
-            char club_lookup_query[5];
-            fgets(club_lookup_query, sizeof(club_lookup_query) + sizeof(char), stdin);
-            club_lookup_query[strlen(club_lookup_query) - 1] = '\0';
-            if (strcmp(club_lookup_query, "") == 0)
+            char *club_lookup_query = read_variable_length_input();
+            if (strcmp(club_lookup_query, "") == 0) // If the user enters nothing, break the loop.
             {
+                free(club_lookup_query);
                 break;
             }
 
             for (int i = 0; i < club_count; i++)
             {
-                if (clubs[i].id == atoi(club_lookup_query))
+                if (clubs[i].id == atoi(club_lookup_query)) // Checks whether the IDs match
                 {
                     club = clubs[i];
                     club_pos = i;
@@ -64,29 +65,31 @@ void manage_clubs()
 
                 for (int j = 0; j < sizeof(club_lookup_query) / sizeof(char); j++)
                 {
-                    club_lookup_query[j] = tolower(club_lookup_query[j]);
+                    club_lookup_query[j] = tolower(club_lookup_query[j]); // Makes all the characters in the club lookup query lowercase
                 }
                 char club_name[MAX_CLUB_NAME_LENGTH];
                 strcpy(club_name, clubs[i].name);
                 for (int j = 0; j < sizeof(club_name) / sizeof(char); j++)
                 {
-                    club_name[j] = tolower(club_name[j]);
+                    club_name[j] = tolower(club_name[j]); // Makes all the characters in the club name lowercase
                 }
-                if (strcmp(club_name, club_lookup_query) == 0)
+                if (strcmp(club_name, club_lookup_query) == 0) // Checks whether the club lookup query and club name matches
                 {
                     club = clubs[i];
                     club_pos = i;
                     break;
                 }
+
+                free(club_lookup_query);
             }
         }
-        if (club_pos == -1)
+        if (club_pos == -1) // Breaks the loop if the club position has been set (which happens when the user enters nothing)
         {
             break;
         }
 
         bool is_authorized = prompt_authorization("Managing a club", club.password, STANDARD, "the main menu");
-        if (!is_authorized)
+        if (!is_authorized) // Returns to the club menu if the user is not authorized
         {
             continue;
         }
@@ -94,12 +97,6 @@ void manage_clubs()
         char choice = '\0';
         while (choice != 'r')
         {
-            club = clubs[club_pos];
-            if (club.id == 0)
-            {
-                break;
-            }
-
             print_greeting();
             printf("MANAGE CLUB '%s'\n\n", club.name);
             printf("Press the key (indicated in brackets) corresponding to one of the options presented below to continue.\n\n");
@@ -148,32 +145,34 @@ void manage_clubs()
     }
 }
 
+// register_club allows the administrator to register a new club.
 void register_club()
 {
     print_greeting();
     printf("REGISTER NEW CLUB\n\n");
 
-    if (club_count == MAX_CLUBS)
+    if (club_count == MAX_CLUBS) // If the number of registered clubs is at the club limit, inform the user and return to the administrator panel.
     {
         printf("A maximum of %d clubs has already been registered. ", MAX_CLUBS);
         return prompt_return("the main menu");
     }
 
-    if (student_count == 0)
+    if (student_count == 0) // A club must have at least one student representative at all times.
     {
         printf("Each club must have at least one student representative and there are 0 registered students. ");
         return prompt_return("the main menu");
     }
 
-    struct Club club = {0};
+    struct Club club = {0}; // Initializes the Club struct with default values
     while (true)
     {
         print_greeting();
         printf("REGISTER NEW CLUB\n\n");
         printf("> Name: ");
-        fgets(club.name, sizeof(club.name) + sizeof(char), stdin);
-        club.name[strlen(club.name) - 1] = '\0';
-        if (strlen(club.name) > 0)
+        char *club_name = read_fixed_length_input(MAX_CLUB_NAME_LENGTH);
+        strcpy(club.name, club_name);
+        free(club_name);
+        if (strlen(club.name) > 0) // The club name must be at least 1 character long
         {
             break;
         }
@@ -191,7 +190,7 @@ void register_club()
     printf("[4] Thursday\n");
     printf("[5] Friday\n");
     char weekly_meeting_day = '\0';
-    while (strcmp(club.weekly_meeting_day, "") == 0)
+    while (strcmp(club.weekly_meeting_day, "") == 0) // Runs as long as no valid weekly meeting day has been set
     {
         weekly_meeting_day = _getch();
         switch (weekly_meeting_day)
@@ -221,15 +220,16 @@ void register_club()
         printf("> Name: %s\n", club.name);
         printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
         printf("> Description: ");
-        fgets(club.description, sizeof(club.description) + sizeof(char), stdin);
-        club.description[strlen(club.description) - 1] = '\0';
-        if (strlen(club.description) > 0)
+        char *club_description = read_fixed_length_input(MAX_CLUB_DESCRIPTION_LENGTH);
+        strcpy(club.description, club_description);
+        free(club_description);
+        if (strlen(club.description) > 0) // The club description must be at least 1 character long
         {
             break;
         }
     }
 
-    char student_reps[1024] = "";
+    char student_reps[1024] = ""; // The student representative IDs are collected but for human-readability, their names should be printed.
     club.student_rep_count = 0;
     while (true)
     {
@@ -238,29 +238,29 @@ void register_club()
         printf("> Name: %s\n", club.name);
         printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
         printf("> Description: %s\n", club.description);
-        printf("> Student Representatives' IDs: ");
+        printf("> Student Representatives' IDs (comma-separated): ");
 
-        char *student_rep_ids = accept_variable_length_input();
-        if (strcmp(student_rep_ids, "") != 0)
+        char *student_rep_ids = read_variable_length_input();
+        if (strcmp(student_rep_ids, "") != 0) // Parses the input only if input was given
         {
-            char *student_rep_id = strtok(student_rep_ids, ", ");
-            while (student_rep_id != NULL && club.student_rep_count < MAX_STUDENT_REPS_PER_CLUB)
+            char *student_rep_id = strtok(student_rep_ids, ", ");                                // Splits the user input by a comma delimiter
+            while (student_rep_id != NULL && club.student_rep_count < MAX_STUDENT_REPS_PER_CLUB) // Ensures that the club student rep count limit is not exceeded
             {
-                bool is_duplicate = false;
+                bool is_duplicate = false; // Checks if the student ID was already entered
                 for (int i = 0; i < club.student_rep_count; i++)
                 {
-                    if (atoi(student_rep_id) == club.student_rep_ids[i])
+                    if (atoi(student_rep_id) == club.student_rep_ids[i]) // If the student ID was already entered, it is marked as a duplicate.
                     {
                         is_duplicate = true;
                         break;
                     }
                 }
-                if (!is_duplicate)
+                if (!is_duplicate) // Ignores duplicates student reps
                 {
                     for (int i = 0; i < student_count; i++)
                     {
                         struct Student student = students[i];
-                        if (student.id == atoi(student_rep_id) && atoi(student_rep_id) != 0)
+                        if (student.id == atoi(student_rep_id) && atoi(student_rep_id) != 0) // Checks for a valid match between the inputted student ID and the students in the database
                         {
                             club.student_rep_ids[club.student_rep_count++] = student.id;
 
@@ -274,18 +274,19 @@ void register_club()
                             snprintf(stringified_student_id, sizeof(stringified_student_id), "%d", student.id);
                             strcat(student_reps, stringified_student_id);
                             strcat(student_reps, "]");
+                            break; // Stops searching once the student is found
                         }
                     }
                 }
-                student_rep_id = strtok(NULL, ", ");
+                student_rep_id = strtok(NULL, ", "); // Continues onto the next student ID
             }
 
-            if (club.student_rep_count > 0)
+            if (club.student_rep_count > 0) // Once there is at least 1 student rep, breaks the loop
             {
                 break;
             }
         }
-        free(student_rep_ids);
+        free(student_rep_ids); // Since student_rep_ids was dynamically allocated, the memory must be freed once no longer in use.
     }
 
     while (true)
@@ -298,11 +299,10 @@ void register_club()
         printf("> Student Representatives: %s\n", student_reps);
 
         printf("> Password (min %d characters): ", MIN_PASSWORD_LENGTH);
-        char *password = accept_variable_length_input();
-        if (strlen(password) < MIN_PASSWORD_LENGTH)
+        char *password = read_variable_length_input(); // A password can be of any (unknown) length, so the read_variable_length_input function is used.
+        if (strlen(password) < MIN_PASSWORD_LENGTH)    // Ensures that the password meets the minimum criterion for security
         {
-            free(password);
-            password = NULL;
+            free(password); // read_variable_length_input() returns a pointer to dynamically-allocated memory
             continue;
         }
 
@@ -314,17 +314,17 @@ void register_club()
         printf("> Student Representatives: %s\n", student_reps);
 
         printf("> Password: ");
-        for (int i = 0; i < strlen(password); i++)
+        for (int i = 0; i < strlen(password); i++) // Reprints the original password with the contents blurred
         {
             printf("*");
         }
         printf("\n");
         printf("> Confirm Password: ");
-        char *password_confirmation = accept_variable_length_input();
-        if (strcmp(password, password_confirmation) == 0)
+        char *password_confirmation = read_variable_length_input();
+        if (strcmp(password, password_confirmation) == 0) // Checks to see if the password confirmation matches the original password
         {
-            club.password_length = strlen(password) + 1;
-            club.password = malloc(club.password_length * sizeof(char));
+            club.password_length = strlen(password) + 1;                 // strlen does not account for the null terminator '\0'.
+            club.password = malloc(club.password_length * sizeof(char)); // Allocates the necessary memory since the password is of arbitrary length
             strcpy(club.password, password);
             free(password);
             free(password_confirmation);
@@ -332,6 +332,7 @@ void register_club()
             password_confirmation = NULL;
             break;
         }
+        // Otherwise, if the password does not match, the process restarts.
         free(password);
         free(password_confirmation);
         password = NULL;
@@ -351,6 +352,7 @@ void register_club()
     }
     printf("\n\n");
 
+    // Prompts the user to confirm registration
     printf("Confirm registration of club? (y/n)", club.name);
     char confirmation = _getch();
     printf("\n");
@@ -361,8 +363,8 @@ void register_club()
         return prompt_return("the main menu");
     }
 
-    club.id = ++prev_club_id;
-    club.registered_at = time(NULL);
+    club.id = ++prev_club_id;        // Increments the previous club ID global variable and sets the club ID to it
+    club.registered_at = time(NULL); // Sets the registration time to the current time
 
     for (int i = 0; i < student_count; i++)
     {
@@ -374,9 +376,9 @@ void register_club()
                 struct Student student = students[i];
                 for (int k = 0; k < sizeof(student.club_memberships) / sizeof(int); k++)
                 {
-                    if (student.club_memberships[k] == 0)
+                    if (student.club_memberships[k] == 0) // Placeholder values assume a value of 0.
                     {
-                        students[i].club_memberships[k] = club.id;
+                        students[i].club_memberships[k] = club.id; // Sets the club membership at that position to the club ID
                         break;
                     }
                 }
@@ -384,7 +386,7 @@ void register_club()
             }
         }
     }
-    clubs[club_count++] = club;
+    clubs[club_count++] = club; // Increments the number of clubs and in the clubs array, sets the previous value which is equivalent to the new club_count - 1 to the club
     save_data_to_file();
 
     print_greeting();
@@ -400,6 +402,7 @@ void register_club()
     prompt_return("the main menu");
 }
 
+// view_club_info displays the information of a club.
 void view_club_info(struct Club club)
 {
     print_greeting();
@@ -413,6 +416,7 @@ void view_club_info(struct Club club)
     printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
     printf("> Student Representatives: ");
 
+    // Prints all the student reps
     for (int i = 0; i < student_count; i++)
     {
         struct Student student = students[i];
@@ -421,13 +425,9 @@ void view_club_info(struct Club club)
             if (club.student_rep_ids[j] == student.id)
             {
                 printf("[%d] %s", student.id, student.name);
-                if (j < club.student_rep_count - 1)
+                if (j < club.student_rep_count - 1) // If this student rep is not the last, print a comma
                 {
                     printf(", ");
-                }
-                else
-                {
-                    break;
                 }
             }
         }
@@ -437,6 +437,7 @@ void view_club_info(struct Club club)
     prompt_return("the club menu");
 }
 
+// manage_club_members allows the administrator and club representatives to view members, enroll new members and rescind memberships.
 void manage_club_members(int club_pos)
 {
     char choice = '\0';
@@ -446,6 +447,7 @@ void manage_club_members(int club_pos)
         print_greeting();
         printf("MANAGE MEMBERS OF CLUB '%s'\n\n", club.name);
 
+        // The number of clubs is variable, so a fixed-size array cannot be allocated.
         struct Student *club_members = malloc(club.member_count * sizeof(struct Student));
         int k = 0;
         for (int i = 0; i < student_count; i++)
@@ -454,18 +456,23 @@ void manage_club_members(int club_pos)
             {
                 if (students[i].club_memberships[j] == club.id)
                 {
-                    club_members[k] = students[i];
+                    club_members[k] = students[i]; // Adds the student to the club_members array
                     k++;
                     if (k == club.member_count)
                     {
                         break;
                     }
                 }
+                if (k == club.member_count) // Breaks the loop once the number of club members have been added for efficiency savings
+                {
+                    break;
+                }
             }
         }
 
-        char ***rows = malloc(club.member_count * sizeof(char **));
-        if (rows == NULL)
+        // contents[i][j] is such that i is the column index and j is the row index of a table.
+        char ***contents = malloc(club.member_count * sizeof(char **));
+        if (contents == NULL)
         {
             printf("Allocation of %lld bytes of memory failed", club.transaction_count * sizeof(char **));
             exit(1);
@@ -477,11 +484,13 @@ void manage_club_members(int club_pos)
             "Class",
             "Email Address",
         };
+        // Initializes default column widths based on the length of the heading. Column widths may be dynamically resized later depending on the size of the row contents.
         int column_widths[4] = {strlen(column_headings[0]),
                                 strlen(column_headings[1]),
                                 strlen(column_headings[2]),
                                 strlen(column_headings[3])};
 
+        // The club members are iterated over twice. This first time is to adjust the column_widths accordingly.
         for (int i = 0; i < club.member_count; i++)
         {
             struct Student student = club_members[i];
@@ -489,34 +498,35 @@ void manage_club_members(int club_pos)
             int student_id_length = snprintf(NULL, 0, "%d", student.id);
             if (column_widths[0] < student_id_length)
             {
-                column_widths[0] = student_id_length;
+                column_widths[0] = student_id_length; // Increases student_id_length if the row content length exceeds the current student_id_length
             }
 
             int student_name_length = strlen(student.name);
             if (column_widths[1] < student_name_length)
             {
-                column_widths[1] = student_name_length;
+                column_widths[1] = student_name_length; // Increases student_name_length if the row content length exceeds the current student_name_length
             }
 
             int student_class_length = strlen(student.class);
             if (column_widths[2] < student_class_length)
             {
-                column_widths[2] = student_class_length;
+                column_widths[2] = student_class_length; // Increases student_class_length if the row content length exceeds the current student_class_length
             }
 
             int student_email_address_length = strlen(student.email_address);
             if (column_widths[3] < student_email_address_length)
             {
-                column_widths[3] = student_email_address_length;
+                column_widths[3] = student_email_address_length; // Increases student_email_address_length if the row content length exceeds the current student_email_address_length
             }
         }
 
+        // Now that the column widths have been properly calculated, the contents of the table will be populated.
         for (int i = 0; i < club.member_count; i++)
         {
             struct Student student = club_members[i];
 
-            rows[i] = malloc(total_columns * sizeof(char *));
-            if (rows[i] == NULL)
+            contents[i] = malloc(total_columns * sizeof(char *)); // contents[i] is the ith column of the table.
+            if (contents[i] == NULL)
             {
                 printf("Allocation of %lld bytes of memory failed", total_columns * sizeof(char *));
                 exit(1);
@@ -524,50 +534,50 @@ void manage_club_members(int club_pos)
 
             for (int j = 0; j < total_columns; j++)
             {
-                rows[i][j] = malloc((column_widths[j] + 1) * sizeof(char));
-                if (rows[i][j] == NULL)
+                contents[i][j] = malloc((column_widths[j] + 1) * sizeof(char)); // contents[i][j] represents the cell defined by the jth row and ith column.
+                if (contents[i][j] == NULL)
                 {
                     printf("Allocation of %lld bytes of memory failed", (column_widths[j] + 1) * sizeof(char));
                     exit(1);
                 }
 
-                switch (j)
+                switch (j) // Formats the cell contents based on the type of data (indicated by j, that is the column)
                 {
                 case 0:
                     int student_id_length = snprintf(NULL, 0, "%d", student.id);
-                    char *stringified_student_id = malloc((student_id_length + 1) * sizeof(char));
+                    char *stringified_student_id = malloc((student_id_length + 1) * sizeof(char)); // The student ID length is variable, so a fixed-size array cannot be declared.
                     if (stringified_student_id == NULL)
                     {
                         printf("Allocation of %lld bytes of memory failed", (student_id_length + 1) * sizeof(char));
                         exit(1);
                     }
-                    snprintf(stringified_student_id, student_id_length + 1, "%d", student.id);
-                    strcpy(rows[i][j], stringified_student_id);
+                    snprintf(stringified_student_id, student_id_length + 1, "%d", student.id); // strcpy accepts a string input, not an integer input, so student.id must be converted to a string.
+                    strcpy(contents[i][j], stringified_student_id);
                     free(stringified_student_id);
                     break;
 
                 case 1:
-                    strcpy(rows[i][j], student.name);
+                    strcpy(contents[i][j], student.name);
                     break;
 
                 case 2:
-                    strcpy(rows[i][j], student.class);
+                    strcpy(contents[i][j], student.class);
                     break;
 
                 case 3:
-                    strcpy(rows[i][j], student.email_address);
+                    strcpy(contents[i][j], student.email_address);
                     break;
                 }
             }
         }
 
         int member_count_length = snprintf(NULL, 0, "%d", club.member_count);
-        int total_footer_rows = 1;
-        char **footer_rows = malloc(total_footer_rows * sizeof(char *));
+        int total_footer_rows = 1;                                       // There is 1 footer row for the member count.
+        char **footer_rows = malloc(total_footer_rows * sizeof(char *)); // The account balance length is variable, so a fixed-size array cannot be declared.
         footer_rows[0] = malloc((strlen("Member Count: ") + member_count_length + 1) * sizeof(char));
         sprintf(footer_rows[0], "Member Count: %d", club.member_count);
 
-        print_table(total_columns, club.member_count, column_widths, 1, column_headings, rows, footer_rows);
+        print_table(total_columns, club.member_count, column_widths, 1, column_headings, contents, footer_rows);
 
         for (int i = 0; i < total_footer_rows; i++)
         {
@@ -578,9 +588,9 @@ void manage_club_members(int club_pos)
         {
             for (int j = 0; j < total_columns; j++)
             {
-                free(rows[i][j]);
+                free(contents[i][j]);
             }
-            free(rows[i]);
+            free(contents[i]);
         }
         free(club_members);
 
@@ -601,6 +611,7 @@ void manage_club_members(int club_pos)
     }
 }
 
+// enroll_new_member allows the administrator and club representatives to enroll a new member to the club.
 void enroll_new_member(struct Club club, int club_pos)
 {
     struct Student student = {0};
@@ -612,11 +623,10 @@ void enroll_new_member(struct Club club, int club_pos)
         printf("ENROLL NEW MEMBER TO CLUB '%s'\n\n", club.name);
         printf("Type in the full name or ID of the student you wish to enroll to the club '%s' and then press [Enter]. Otherwise, leave the field blank and press [Enter] to return to the club menu.\n\n", club.name);
 
-        char student_lookup_query[MAX_STUDENT_NAME_LENGTH];
-        fgets(student_lookup_query, sizeof(student_lookup_query) + sizeof(char), stdin);
-        student_lookup_query[strlen(student_lookup_query) - 1] = '\0';
+        char *student_lookup_query = read_fixed_length_input(MAX_STUDENT_NAME_LENGTH);
         if (strcmp(student_lookup_query, "") == 0)
         {
+            free(student_lookup_query);
             break;
         }
 
@@ -631,21 +641,23 @@ void enroll_new_member(struct Club club, int club_pos)
 
             for (int j = 0; j < sizeof(student_lookup_query) / sizeof(char); j++)
             {
-                student_lookup_query[j] = tolower(student_lookup_query[j]);
+                student_lookup_query[j] = tolower(student_lookup_query[j]); // Makes every character in the student lookup query lowercase
             }
             char student_name[MAX_STUDENT_NAME_LENGTH];
             strcpy(student_name, students[i].name);
             for (int j = 0; j < sizeof(student_name) / sizeof(char); j++)
             {
-                student_name[j] = tolower(student_name[j]);
+                student_name[j] = tolower(student_name[j]); // Makes every character in the student name lowercase
             }
-            if (strcmp(student_name, student_lookup_query) == 0)
+            if (strcmp(student_name, student_lookup_query) == 0) // Checks if the student name and student lookup query (now case insensitive) match
             {
                 student = students[i];
                 student_pos = i;
                 break;
             }
         }
+
+        free(student_lookup_query);
     }
     if (student_pos == -1)
     {
@@ -685,13 +697,13 @@ void enroll_new_member(struct Club club, int club_pos)
         return prompt_return("the club menu");
     }
 
-    clubs[club_pos].member_ids[club.member_count] = student.id;
-    clubs[club_pos].member_count++;
+    clubs[club_pos].member_ids[club.member_count] = student.id; // Adds the student's ID to the club member list
+    clubs[club_pos].member_count++;                             // Increments the club's member count
     for (int i = 0; i < MAX_CLUB_MEMBERSHIPS; i++)
     {
         if (student.club_memberships[i] == 0)
         {
-            students[student_pos].club_memberships[i] = club.id;
+            students[student_pos].club_memberships[i] = club.id; // Adds the club ID to the student's club memberships
             break;
         }
     }
@@ -701,6 +713,7 @@ void enroll_new_member(struct Club club, int club_pos)
     prompt_return("the club menu");
 }
 
+// rescind_membership allows the administrator and club representatives to rescind a student's membership from a club.
 void rescind_membership(struct Club club, int club_pos)
 {
     struct Student student = {0};
@@ -712,9 +725,7 @@ void rescind_membership(struct Club club, int club_pos)
         printf("RESCIND MEMBERSHIP FROM CLUB '%s'\n\n", club.name);
         printf("Type in the full name or ID of the student whose membership of '%s' you wish to rescind and then press [Enter]. Otherwise, leave the field blank and press [Enter] to return to the club menu.\n\n", club.name);
 
-        char student_lookup_query[MAX_STUDENT_NAME_LENGTH];
-        fgets(student_lookup_query, sizeof(student_lookup_query) + sizeof(char), stdin);
-        student_lookup_query[strlen(student_lookup_query) - 1] = '\0';
+        char *student_lookup_query = read_fixed_length_input(MAX_STUDENT_NAME_LENGTH);
         if (strcmp(student_lookup_query, "") == 0)
         {
             break;
@@ -742,8 +753,10 @@ void rescind_membership(struct Club club, int club_pos)
             if (strcmp(student_name, student_lookup_query) == 0)
             {
                 student = students[i];
+                free(student_lookup_query);
                 break;
             }
+            free(student_lookup_query);
         }
     }
     if (student_pos == -1)
@@ -852,15 +865,16 @@ void update_club_info(struct Club club, int club_pos)
             print_greeting();
 
             printf("After typing the new name for '%s', press [Enter] to confirm.\n\n", club.name);
-            char new_name[MAX_CLUB_NAME_LENGTH] = "";
+            char *new_name = read_fixed_length_input(MAX_CLUB_NAME_LENGTH);
             while (strcmp(new_name, "") == 0)
             {
-                fgets(new_name, sizeof(new_name) + sizeof(char), stdin);
-                new_name[strlen(new_name) - 1] = '\0';
+                free(new_name); // Frees old pointer to new_name
+                char *new_name = read_fixed_length_input(MAX_CLUB_NAME_LENGTH);
             }
             char old_name[MAX_CLUB_NAME_LENGTH];
             strcpy(old_name, club.name);
             strcpy(clubs[club_pos].name, new_name);
+            free(new_name);
             save_data_to_file();
             print_greeting();
             printf("Successfully updated the name of '%s' (previously '%s'). ", new_name, old_name);
@@ -910,13 +924,14 @@ void update_club_info(struct Club club, int club_pos)
             print_greeting();
 
             printf("After typing the new description for '%s', press [Enter] to confirm.\n\n", club.name);
-            char new_description[MAX_CLUB_DESCRIPTION_LENGTH] = "";
+            char *new_description = read_fixed_length_input(MAX_CLUB_DESCRIPTION_LENGTH);
             while (strcmp(new_description, "") == 0)
             {
-                fgets(new_description, sizeof(new_description) + sizeof(char), stdin);
-                new_description[strlen(new_description) - 1] = '\0';
+                free(new_description); // Frees old pointer to new_description
+                char *new_description = read_fixed_length_input(MAX_CLUB_DESCRIPTION_LENGTH);
             }
             strcpy(clubs[club_pos].description, new_description);
+            free(new_description);
             save_data_to_file();
             print_greeting();
             printf("Successfully updated the description of '%s'. ", club.name);
@@ -958,7 +973,7 @@ void update_club_info(struct Club club, int club_pos)
                 print_greeting();
                 printf("Enter a comma-separated list of the IDs of the new student representatives for '%s' below. To confirm your choice, press [Enter].\n\n", club.name);
 
-                char *student_rep_ids = accept_variable_length_input();
+                char *student_rep_ids = read_variable_length_input();
                 if (strcmp(student_rep_ids, "") != 0)
                 {
                     char *student_rep_id = strtok(student_rep_ids, ", ");
@@ -1046,7 +1061,7 @@ void update_club_info(struct Club club, int club_pos)
                 print_greeting();
                 printf("Enter the new password for club '%s' below. It must contain at least %d characters.\n\n", club.name, MIN_PASSWORD_LENGTH);
                 printf("Password: ");
-                char *password = accept_variable_length_input();
+                char *password = read_variable_length_input();
                 if (strlen(password) < MIN_PASSWORD_LENGTH)
                 {
                     free(password);
@@ -1063,7 +1078,7 @@ void update_club_info(struct Club club, int club_pos)
                 }
                 printf("\n");
                 printf("Confirm Password: ");
-                char *password_confirmation = accept_variable_length_input();
+                char *password_confirmation = read_variable_length_input();
                 if (strcmp(password, password_confirmation) == 0)
                 {
                     clubs[club_pos].password_length = strlen(password) + 1;
@@ -1211,12 +1226,14 @@ void post_meeting(struct Club club, int club_pos)
         print_greeting();
         printf("POST MEETING FOR CLUB '%s'\n\n", club.name);
         printf("> Meeting Topic (max %d characters): ", MAX_MEETING_TOPIC_LENGTH);
-        fgets(meeting.topic, sizeof(meeting.topic) + sizeof(char), stdin);
-        meeting.topic[strlen(meeting.topic) - 1] = '\0';
+        char *meeting_topic = read_fixed_length_input(MAX_MEETING_TOPIC_LENGTH);
+        strcpy(meeting.topic, meeting_topic);
         if (strlen(meeting.topic) > 0)
         {
+            free(meeting_topic);
             break;
         }
+        free(meeting_topic);
     }
 
     while (true)
@@ -1226,12 +1243,10 @@ void post_meeting(struct Club club, int club_pos)
         printf("> Meeting Topic (max %d characters): %s\n", MAX_MEETING_TOPIC_LENGTH, meeting.topic);
         printf("> Convened At (DD/MM/YYYY HH:MM): ");
 
-        char user_input[17];
-        fgets(user_input, sizeof(user_input) + sizeof(char), stdin);
-        user_input[strlen(user_input) - 1] = '\0';
-
+        char *raw_time = read_fixed_length_input(16); // There are 16 characters in "DD/MM/YYYY HH:MM".
         struct tm tm;
-        sscanf(user_input, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min);
+        sscanf(raw_time, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min);
+        free(raw_time);
         tm.tm_year -= 1900;
         tm.tm_mon -= 1;
         meeting.convened_at = mktime(&tm);
@@ -1254,12 +1269,10 @@ void post_meeting(struct Club club, int club_pos)
         printf("> Convened At (DD/MM/YYYY HH:MM): %s\n", format_time_t(meeting.convened_at));
         printf("> Adjourned At (DD/MM/YYYY HH:MM): ");
 
-        char user_input[17];
-        fgets(user_input, sizeof(user_input) + sizeof(char), stdin);
-        user_input[strlen(user_input) - 1] = '\0';
-
+        char *raw_time = read_fixed_length_input(16); // There are 16 characters in "DD/MM/YYYY HH:MM".
         struct tm tm;
-        sscanf(user_input, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min);
+        sscanf(raw_time, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min); // Parses the inputted time to a tm
+        free(raw_time);
         tm.tm_year -= 1900;
         tm.tm_mon -= 1;
         meeting.adjourned_at = mktime(&tm);
@@ -1274,6 +1287,8 @@ void post_meeting(struct Club club, int club_pos)
         }
     }
 
+    // Marks all club members as absent by default
+    // User will have the option to manually mark members as present later.
     meeting.absent_member_count = club.member_count;
     for (int i = 0; i < club.member_count; i++)
     {
@@ -1284,15 +1299,17 @@ void post_meeting(struct Club club, int club_pos)
         meeting.absent_member_ids[i] = club.member_ids[i];
     }
 
-    meeting = edit_attendance_sheet(club, meeting);
-    meeting.id = ++clubs[club_pos].prev_meeting_id;
-    clubs[club_pos].meeting_count++;
-    meetings = realloc(meetings, (meeting_count + 1) * sizeof(struct Meeting));
+    meeting = edit_attendance_sheet(club, meeting);                             // User may edit the attendance sheet, marking members present as appropriate.
+    meeting.id = ++clubs[club_pos].prev_meeting_id;                             // Increments the club's previous meeting ID
+    clubs[club_pos].meeting_count++;                                            // Increments the club's meeting count
+    meetings = realloc(meetings, (meeting_count + 1) * sizeof(struct Meeting)); // meetings is dynamically allocated memory so it must be resized in order to store the new meeting
     if (meetings == NULL)
     {
         printf("Reallocation of %lld bytes of memory failed", (meeting_count + 1) * sizeof(struct Meeting));
         exit(1);
     }
+
+    // Saves the new meeting
     meetings[meeting_count++] = meeting;
     save_data_to_file();
 
@@ -1306,23 +1323,27 @@ void post_meeting(struct Club club, int club_pos)
     prompt_return("the club menu");
 }
 
+// Users can interactively edit the attendance sheet, marking members present or absent as appropriate.
+// Returns the modified meeting struct
 struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
 {
     int attendee_count = meeting.present_member_count + meeting.absent_member_count;
-    if (attendee_count == 0)
+    if (attendee_count == 0) // Ensures that the attendance sheet consists of members who still exist in the system
     {
         print_greeting();
-        printf("The students who attended this meeting no longer exist in the system. The attendance sheet is blank. ");
+        printf("None of the students who attended this meeting currently exist in the system. The attendance sheet is blank. ");
         prompt_return("the meeting summary");
         return meeting;
     }
 
-    int *attendee_ids = malloc(attendee_count * sizeof(int));
+    int *attendee_ids = malloc(attendee_count * sizeof(int)); // The number of attendees varies from meeting to meeting, so attendee_ids must be dynamically allocated.
     if (attendee_ids == NULL)
     {
         printf("Allocation of %lld bytes of memory failed", attendee_count * sizeof(int));
         exit(1);
     }
+
+    // Adds the absent members' IDs and the present members' IDs to the attendee_ids array
     for (int i = 0; i < meeting.absent_member_count; i++)
     {
         attendee_ids[i] = meeting.absent_member_ids[i];
@@ -1332,7 +1353,8 @@ struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
         attendee_ids[meeting.absent_member_count + i] = meeting.present_member_ids[i];
     }
 
-    int cursor_position = 0;
+    // The attendance sheet is interactive and updates with every keystroke.
+    int cursor_position = 0; // The cursor indicates the currently selected attendee.
     char choice = '\0';
     while (choice != 'r')
     {
@@ -1342,7 +1364,7 @@ struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
         printf("- All members are initially marked as absent. Press [P] and [A] to mark the currently selected member as present and absent respectively.\n");
         printf("- Press [R] to confirm and save the attendance sheet.\n\n");
 
-        struct Student selected_member;
+        struct Student selected_member = {0};
         bool selected_member_is_present = false;
 
         for (int i = 0; i < attendee_count; i++)
@@ -1365,75 +1387,82 @@ struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
                     break;
                 }
             }
-            if (i == cursor_position)
+            if (i == cursor_position) // The cursor position is identical to the position of the currently selected member.
             {
                 selected_member = member;
                 selected_member_is_present = is_present;
-                printf("> ");
+                printf("> "); // The ">" symbol indicates the cursor position.
             }
             else
             {
-                printf("  ");
+                printf("  "); // Adds padding to ensure that the currently selected member aligns with other members
             }
-            printf("[%d] %s: %s\n", member.id, member.name, is_present ? "P" : "A");
+            printf("[%d] %s: %s\n", member.id, member.name, is_present ? "P" : "A"); // Displays the member's ID, name, and attendance status
         }
 
         choice = _getch();
         switch (choice)
         {
-        case 's':
-            if (cursor_position < attendee_count - 1)
+        case 's':                                     // An input of "s" moves the cursor down the list of attendees.
+            if (cursor_position < attendee_count - 1) // Ensures that the cursor does not move past the last attendee
             {
                 cursor_position++;
             }
             break;
 
-        case 'w':
-            if (cursor_position > 0)
+        case 'w':                    // An input of "w" moves the cursor up the list of attendees.
+            if (cursor_position > 0) // Ensures that the cursor does not move past the first attendee.
             {
                 cursor_position--;
             }
             break;
 
         case 'p':
-            if (!selected_member_is_present)
+            if (selected_member_is_present) // Ensures that the selected member is not double marked as present
             {
-                meeting.present_member_ids[meeting.present_member_count++] = selected_member.id;
+                continue;
             }
+
+            meeting.present_member_ids[meeting.present_member_count++] = selected_member.id; // Adds the selected member to the present member ID list
+            // Removes the selected member from the absent list and places them in the present list
             for (int i = 0; i < meeting.absent_member_count; i++)
             {
                 if (meeting.absent_member_ids[i] == selected_member.id)
                 {
-                    if (meeting.absent_member_count > i + 1)
+                    if (meeting.absent_member_count > i + 1) // Checks if the absent member is the last member in the absent list
                     {
+                        // Shifts all members after the selected member one position down one position
                         for (int j = i; j < meeting.absent_member_count - 1; j++)
                         {
                             meeting.absent_member_ids[j] = meeting.absent_member_ids[j + 1];
                         }
                     }
-                    meeting.absent_member_ids[--meeting.absent_member_count] = 0;
+                    meeting.absent_member_ids[--meeting.absent_member_count] = 0; // Decrements the absent member count and removes the last member
                     break;
                 }
             }
             break;
 
         case 'a':
-            if (selected_member_is_present)
+            if (!selected_member_is_present) // Ensures that the selected member is not double marked as absent
             {
-                meeting.absent_member_ids[meeting.absent_member_count++] = selected_member.id;
+                continue;
             }
+
+            meeting.absent_member_ids[meeting.absent_member_count++] = selected_member.id; // Adds the selected member to the absent member ID list
+            // Removes the selected member from the present list and places them in the absent list
             for (int i = 0; i < meeting.present_member_count; i++)
             {
                 if (meeting.present_member_ids[i] == selected_member.id)
                 {
-                    if (meeting.present_member_count > i + 1)
+                    if (meeting.present_member_count > i + 1) // Checks if the present member is the last member in the present list
                     {
-                        for (int j = i; j < meeting.present_member_count - 1; j++)
+                        for (int j = i; j < meeting.present_member_count - 1; j++) // Shifts all members after the selected member one position down one position
                         {
                             meeting.present_member_ids[j] = meeting.present_member_ids[j + 1];
                         }
                     }
-                    meeting.present_member_ids[--meeting.present_member_count] = 0;
+                    meeting.present_member_ids[--meeting.present_member_count] = 0; // Decrements the present member count and removes the last member
                     break;
                 }
             }
@@ -1445,18 +1474,20 @@ struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
     return meeting;
 }
 
+// list_club_meetings allows the administrator and club representatives to view a list of all meetings for a specific club.
+// The user can select a meeting to view its details.
 void list_club_meetings(struct Club club)
 {
     print_greeting();
 
-    if (club.meeting_count == 0)
+    if (club.meeting_count == 0) // Returns to the club menu if there are no posted meetings for the club
     {
         printf("No meetings have yet been posted for club '%s'. ", club.name);
         prompt_return("the club menu");
         return;
     }
 
-    struct Meeting *club_meetings = malloc(club.meeting_count * sizeof(struct Meeting));
+    struct Meeting *club_meetings = malloc(club.meeting_count * sizeof(struct Meeting)); // The number of club meetings is variable, so club_meetings must be dynamically allocated
     if (club_meetings == NULL)
     {
         printf("Allocation of %lld bytes of memory failed", club.meeting_count * sizeof(struct Meeting));
@@ -1471,7 +1502,7 @@ void list_club_meetings(struct Club club)
             j++;
             if (j == club.meeting_count)
             {
-                break;
+                break; // Breaks the loop once the number of club meetings have been added for efficiency savings
             }
         }
     }
@@ -1482,8 +1513,9 @@ void list_club_meetings(struct Club club)
         printf("CLUB MEETING LISTING FOR '%s'\n\n", club.name);
         printf("Type in the meeting ID then press [Enter]. Otherwise, leave the field blank and press [Enter] to return to the club menu.\n\n");
 
-        char ***rows = malloc(club.meeting_count * sizeof(char **));
-        if (rows == NULL)
+        // contents[i][j] is such that i is the column index and j is the row index of a table.
+        char ***contents = malloc(club.meeting_count * sizeof(char **));
+        if (contents == NULL)
         {
             printf("Allocation of %lld bytes of memory failed", club.meeting_count * sizeof(char **));
             exit(1);
@@ -1494,12 +1526,14 @@ void list_club_meetings(struct Club club)
                                    "Topic",
                                    "Adjourned At",
                                    "Attendance Rate"};
+        // Initializes default column widths based on the length of the heading. Column widths may be dynamically resized later depending on the size of the row contents.
         int column_widths[] = {strlen(column_headings[0]),
                                strlen("YYYY/MM/DD HH:MM"),
                                strlen(column_headings[2]),
                                strlen("YYYY/MM/DD HH:MM"),
                                strlen(column_headings[4])};
 
+        // The club meetings are iterated over twice. This first time is to adjust the column_widths accordingly.
         for (int i = 0; i < club.meeting_count; i++)
         {
             struct Meeting meeting = club_meetings[i];
@@ -1507,18 +1541,18 @@ void list_club_meetings(struct Club club)
             int meeting_id_length = snprintf(NULL, 0, "%d", meeting.id);
             if (column_widths[0] < meeting_id_length)
             {
-                column_widths[0] = meeting_id_length;
+                column_widths[0] = meeting_id_length; // Increases meeting_id_length if the row content length exceeds the current meeting_id_length
             }
 
             int meeting_topic_length = strlen(meeting.topic);
             if (column_widths[2] < meeting_topic_length)
             {
-                column_widths[2] = meeting_topic_length;
+                column_widths[2] = meeting_topic_length; // Increases meeting_topic_length if the row content length exceeds the current meeting_topic_length
             }
 
             double meeting_attendance_rate;
             int total_attendees = meeting.present_member_count + meeting.absent_member_count;
-            if (total_attendees == 0)
+            if (total_attendees == 0) // Division by 0 is undefined so the attendance rate is just set to 0 if there are 0 total attendees.
             {
                 meeting_attendance_rate = 0;
             }
@@ -1529,31 +1563,32 @@ void list_club_meetings(struct Club club)
             int meeting_attendance_rate_length = snprintf(NULL, 0, "%.1lf%%", meeting_attendance_rate);
             if (column_widths[4] < meeting_attendance_rate_length)
             {
-                column_widths[4] = meeting_attendance_rate_length;
+                column_widths[4] = meeting_attendance_rate_length; // Increases meeting_attendance_rate_length if the row content length exceeds the current meeting_attendance_rate_length
             }
         }
 
+        // Now that the column widths have been properly calculated, the contents of the table will be populated.
         for (int i = 0; i < club.meeting_count; i++)
         {
             struct Meeting meeting = club_meetings[i];
 
-            rows[i] = malloc(total_columns * sizeof(char *));
-            if (rows[i] == NULL)
+            contents[i] = malloc(total_columns * sizeof(char *)); // contents[i] is the ith column of the table.
+            if (contents[i] == NULL)
             {
                 printf("Allocation of %lld bytes of memory failed", total_columns * sizeof(char *));
                 exit(1);
             }
 
-            for (int j = 0; j < total_columns; j++)
+            for (int j = 0; j < total_columns; j++) // Formats the cell contents based on the type of data (indicated by j, that is the column)
             {
-                rows[i][j] = malloc((column_widths[j] + 1) * sizeof(char));
-                if (rows[i][j] == NULL)
+                contents[i][j] = malloc((column_widths[j] + 1) * sizeof(char)); // contents[i][j] represents the cell defined by the jth row and ith column.
+                if (contents[i][j] == NULL)
                 {
                     printf("Allocation of %lld bytes of memory failed", (column_widths[j] + 1) * sizeof(char));
                     exit(1);
                 }
 
-                switch (j)
+                switch (j) // Formats the cell contents based on the type of data (indicated by j, that is the column)
                 {
                 case 0:
                     int meeting_id_length = snprintf(NULL, 0, "%d", meeting.id);
@@ -1564,20 +1599,20 @@ void list_club_meetings(struct Club club)
                         exit(1);
                     }
                     snprintf(stringified_meeting_id, meeting_id_length + 1, "%d", meeting.id);
-                    strcpy(rows[i][j], stringified_meeting_id);
+                    strcpy(contents[i][j], stringified_meeting_id); // strcpy accepts a string input, not an integer input, so meeting.id must be converted to a string.
                     free(stringified_meeting_id);
                     break;
 
                 case 1:
-                    strcpy(rows[i][j], format_time_t(meeting.convened_at));
+                    strcpy(contents[i][j], format_time_t(meeting.convened_at));
                     break;
 
                 case 2:
-                    strcpy(rows[i][j], meeting.topic);
+                    strcpy(contents[i][j], meeting.topic);
                     break;
 
                 case 3:
-                    strcpy(rows[i][j], format_time_t(meeting.adjourned_at));
+                    strcpy(contents[i][j], format_time_t(meeting.adjourned_at));
                     break;
 
                 case 4:
@@ -1600,24 +1635,24 @@ void list_club_meetings(struct Club club)
                         exit(1);
                     }
                     snprintf(stringified_attendance_rate, meeting_attendance_rate_length + 1, "%.1lf%%", meeting_attendance_rate);
-                    strcpy(rows[i][j], stringified_attendance_rate);
+                    strcpy(contents[i][j], stringified_attendance_rate);
                     free(stringified_attendance_rate);
                     break;
                 }
             }
         }
 
-        print_table(total_columns, club.meeting_count, column_widths, 0, column_headings, rows, NULL);
+        print_table(total_columns, club.meeting_count, column_widths, 0, column_headings, contents, NULL);
 
         for (int i = 0; i < club.meeting_count; i++)
         {
             for (int j = 0; j < total_columns; j++)
             {
-                free(rows[i][j]);
+                free(contents[i][j]);
             }
-            free(rows[i]);
+            free(contents[i]);
         }
-        free(rows);
+        free(contents);
 
         printf("\n\n");
 
@@ -1625,11 +1660,10 @@ void list_club_meetings(struct Club club)
         int meeting_pos = -1;
         while (meeting.id == 0)
         {
-            char meeting_lookup_query[5];
-            fgets(meeting_lookup_query, sizeof(meeting_lookup_query) + sizeof(char), stdin);
-            meeting_lookup_query[strlen(meeting_lookup_query) - 1] = '\0';
+            char *meeting_lookup_query = read_variable_length_input();
             if (strcmp(meeting_lookup_query, "") == 0)
             {
+                free(meeting_lookup_query);
                 break;
             }
 
@@ -1647,6 +1681,7 @@ void list_club_meetings(struct Club club)
                     break;
                 }
             }
+            free(meeting_lookup_query);
         }
         if (meeting_pos == -1)
         {

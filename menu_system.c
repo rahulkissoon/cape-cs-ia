@@ -306,3 +306,22 @@ void print_table(int total_columns, int total_rows, int *column_widths, int tota
     }
     printf("+");
 }
+
+time_t parse_time_input()
+{
+    char *unparsed_time = read_fixed_length_input(16); // There are 16 characters in "DD/MM/YYYY HH:MM".
+    struct tm tm = {0};
+    sscanf(unparsed_time, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min); // sscanf reads the input string and assigns the values to the tm struct
+    free(unparsed_time);
+    tm.tm_year -= 1900; // tm_year is years since 1900
+    tm.tm_mon -= 1;     // tm_mon starts counting at 0
+    return mktime(&tm); // mktime converts the tm struct to a time_t
+}
+
+char *format_time_t(time_t timestamp)
+{
+    struct tm *tm = localtime(&timestamp);
+    static char formatted_time[17];
+    strftime(formatted_time, sizeof(formatted_time), "%d/%m/%Y %H:%M", tm);
+    return formatted_time;
+}

@@ -8,7 +8,6 @@
 #include "clubs.h"
 #include "core.h"
 #include "menu_system.h"
-#include "util.h"
 
 struct Transaction *transactions = NULL; // Initializes transactions to be NULL, will be populated later. transactions is a global variable.
 
@@ -226,9 +225,9 @@ void record_transaction(struct Club club, int club_pos)
         printf("RECORD FINANCIAL TRANSACTION FOR CLUB '%s'\n\n", club.name);
         printf("> Particulars (max %d characters): ", MAX_PARTICULARS_LENGTH);
         char *transaction_particulars = read_fixed_length_input(MAX_PARTICULARS_LENGTH); // Accepts a fixed-length input for the particulars of the transaction
+        strcpy(transaction.particulars, transaction_particulars);
         if (strlen(transaction.particulars) > 0)
         {
-            strcpy(transaction.particulars, transaction_particulars);
             free(transaction_particulars);
             break; // If the user has input a non-zero-length string for the particulars, continue.
         }
@@ -252,14 +251,7 @@ void record_transaction(struct Club club, int club_pos)
         printf("> Particulars (max %d characters): %s\n", MAX_PARTICULARS_LENGTH, transaction.particulars);
         printf("> Date and Time (DD/MM/YYYY HH:MM): ");
 
-        char *raw_time = read_fixed_length_input(16); // There are 16 characters in "DD/MM/YYYY HH:MM".
-        struct tm tm;
-        sscanf(raw_time, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min); // Parses the inputted time to a tm
-        free(raw_time);
-        tm.tm_year -= 1900;
-        tm.tm_mon -= 1;
-        transaction.time = mktime(&tm); // Converts the tm to a time_t which can be stored instead.
-
+        transaction.time = parse_time_input();
         // If the time is invalid, the time is greater than the current time or the time is less than the previous transaction's time (ledgers are arranged chronologically), prompt again for a new time.
         if (transaction.time == (time_t)-1 || transaction.time > time(NULL) || (prev_transaction.id > 0 && transaction.time <= prev_transaction.time))
         {

@@ -187,7 +187,7 @@ void first_time_setup()
 
     print_greeting();
     printf("Please enter the name of your school. (Input will be truncated to first %d characters)\n\n", MAX_SCHOOL_NAME_LENGTH);
-    while (school_name == NULL)
+    while (strcmp(school_name, "") == 0)
     {
         char *chosen_school_name = read_fixed_length_input(MAX_SCHOOL_NAME_LENGTH);
         if (strlen(chosen_school_name) > 0 && strlen(chosen_school_name) <= MAX_SCHOOL_NAME_LENGTH)

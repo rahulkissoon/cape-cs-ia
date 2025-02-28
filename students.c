@@ -10,7 +10,6 @@
 #include "students.h"
 #include "core.h"
 #include "menu_system.h"
-#include "util.h"
 
 // These count variables are initialized to be 0, will be read later from the data file. These are global variables.
 int student_count = 0;

@@ -11,7 +11,6 @@
 #include "clubs.h"
 #include "core.h"
 #include "students.h"
-#include "util.h"
 
 struct Club clubs[MAX_CLUBS] = {{0}}; // The clubs array is declared with MAX_CLUBS as its size. clubs is a global variable.
 struct Meeting *meetings = NULL;      // Initializes meetings to be NULL, will be populated later. meetings is a global variable.
@@ -79,9 +78,9 @@ void manage_clubs()
                     club_pos = i;
                     break;
                 }
-
-                free(club_lookup_query);
             }
+
+            free(club_lookup_query);
         }
         if (club_pos == -1) // Breaks the loop if the club position has been set (which happens when the user enters nothing)
         {
@@ -1243,14 +1242,7 @@ void post_meeting(struct Club club, int club_pos)
         printf("> Meeting Topic (max %d characters): %s\n", MAX_MEETING_TOPIC_LENGTH, meeting.topic);
         printf("> Convened At (DD/MM/YYYY HH:MM): ");
 
-        char *raw_time = read_fixed_length_input(16); // There are 16 characters in "DD/MM/YYYY HH:MM".
-        struct tm tm;
-        sscanf(raw_time, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min);
-        free(raw_time);
-        tm.tm_year -= 1900;
-        tm.tm_mon -= 1;
-        meeting.convened_at = mktime(&tm);
-
+        meeting.convened_at = parse_time_input();
         if (meeting.convened_at == (time_t)-1 || meeting.convened_at > time(NULL) || (prev_meeting.id > 0 && meeting.convened_at <= prev_meeting.convened_at))
         {
             continue;
@@ -1269,14 +1261,7 @@ void post_meeting(struct Club club, int club_pos)
         printf("> Convened At (DD/MM/YYYY HH:MM): %s\n", format_time_t(meeting.convened_at));
         printf("> Adjourned At (DD/MM/YYYY HH:MM): ");
 
-        char *raw_time = read_fixed_length_input(16); // There are 16 characters in "DD/MM/YYYY HH:MM".
-        struct tm tm;
-        sscanf(raw_time, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min); // Parses the inputted time to a tm
-        free(raw_time);
-        tm.tm_year -= 1900;
-        tm.tm_mon -= 1;
-        meeting.adjourned_at = mktime(&tm);
-
+        meeting.adjourned_at = parse_time_input();
         if (meeting.adjourned_at == (time_t)-1 || meeting.adjourned_at > time(NULL) || meeting.adjourned_at <= meeting.convened_at)
         {
             continue;

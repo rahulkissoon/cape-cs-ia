@@ -189,7 +189,7 @@ void first_time_setup()
     printf("Please enter the name of your school. (Input will be truncated to first %d characters)\n\n", MAX_SCHOOL_NAME_LENGTH);
     while (strcmp(school_name, "") == 0)
     {
-        char *chosen_school_name = read_fixed_length_input(MAX_SCHOOL_NAME_LENGTH);
+        char *chosen_school_name = read_variable_length_input();
         if (strlen(chosen_school_name) > 0 && strlen(chosen_school_name) <= MAX_SCHOOL_NAME_LENGTH)
         {
             strcpy(school_name, chosen_school_name);
@@ -213,10 +213,11 @@ void change_school_name()
     strcpy(prev_school_name, school_name);
     while (true)
     {
-        char *new_school_name = read_fixed_length_input(MAX_SCHOOL_NAME_LENGTH);
+        char *new_school_name = read_variable_length_input();
         if (strlen(new_school_name) > 0 && strlen(new_school_name) <= MAX_SCHOOL_NAME_LENGTH)
         {
             strcpy(school_name, new_school_name);
+            save_data_to_file();
             free(new_school_name);
             break;
         }

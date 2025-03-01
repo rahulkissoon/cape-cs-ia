@@ -89,23 +89,6 @@ char *read_variable_length_input()
     // The buffer (dynamically allocated memory) must be manually freed by the caller of this function to prevent memory overflow.
 }
 
-// read_fixed_length_input reads a fixed length of input from the user until the user presses [Enter] (indicated by a newline character).
-char *read_fixed_length_input(int size)
-{
-    char *buffer = malloc((size + 1) * sizeof(char)); // Dynamically allocate size + 1 for the null terminator
-    if (buffer == NULL)
-    {
-        printf("Allocation of %lld bytes of memory failed", (size + 1) * sizeof(char));
-        exit(1);
-    }
-
-    fgets(buffer, size + 1, stdin);
-    buffer[strlen(buffer) - 1] = '\0'; // fgets sets the last character in the string to be '\n' which should be replaced with a null terminator '\0'.
-
-    return buffer; // Returns the buffer containing the user's input
-    // The buffer (dynamically allocated memory) must be manually freed by the caller of this function to prevent memory overflow.
-}
-
 void show_main_menu()
 {
     char choice = '\0';
@@ -154,7 +137,7 @@ void show_admin_panel()
         printf("[5] Change School Name\n");
         printf("[R] Return");
 
-        choice = _getch();
+        choice = tolower(_getch());
         switch (choice)
         {
         case '1':
@@ -183,7 +166,7 @@ void prompt_return(char *to)
     char user_input = '\0';
     while (user_input != 'r')
     {
-        user_input = _getch();
+        user_input = tolower(_getch());
     };
 }
 
@@ -309,7 +292,7 @@ void print_table(int total_columns, int total_rows, int *column_widths, int tota
 
 time_t parse_time_input()
 {
-    char *unparsed_time = read_fixed_length_input(16); // There are 16 characters in "DD/MM/YYYY HH:MM".
+    char *unparsed_time = read_variable_length_input();
     struct tm tm = {0};
     sscanf(unparsed_time, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min); // sscanf reads the input string and assigns the values to the tm struct
     free(unparsed_time);

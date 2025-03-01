@@ -54,7 +54,7 @@ void update_club_info(struct Club club, int club_pos);
 void delete_club(struct Club club, int club_pos);
 void post_meeting(struct Club club, int club_pos);
 struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting);
-void list_club_meetings(struct Club club);
+void list_club_meetings(int club_pos);
 
 extern struct Club clubs[MAX_CLUBS];
 extern struct Meeting *meetings;

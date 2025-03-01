@@ -224,7 +224,7 @@ void record_transaction(struct Club club, int club_pos)
         print_greeting();
         printf("RECORD FINANCIAL TRANSACTION FOR CLUB '%s'\n\n", club.name);
         printf("> Particulars (max %d characters): ", MAX_PARTICULARS_LENGTH);
-        char *transaction_particulars = read_fixed_length_input(MAX_PARTICULARS_LENGTH); // Accepts a fixed-length input for the particulars of the transaction
+        char *transaction_particulars = read_variable_length_input(); // Accepts a fixed-length input for the particulars of the transaction
         strcpy(transaction.particulars, transaction_particulars);
         if (strlen(transaction.particulars) > 0)
         {

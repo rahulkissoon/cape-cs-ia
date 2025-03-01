@@ -35,12 +35,8 @@ bool prompt_authorization(char *action_name, char *password, enum AuthorizationL
     if (!is_authorized)
     {
         print_greeting();
-        printf("Authentication failed; incorrect password. Press [R] to return to %s.", return_to);
-        char user_input = '\0';
-        while (user_input != 'r')
-        {
-            user_input = _getch();
-        }
+        printf("Authentication failed; incorrect password. ");
+        prompt_return(return_to);
     };
     return is_authorized;
 }

@@ -62,7 +62,7 @@ void manage_clubs()
                     break;
                 }
 
-                for (int j = 0; j < sizeof(club_lookup_query) / sizeof(char); j++)
+                for (int j = 0; j < strlen(club_lookup_query); j++)
                 {
                     club_lookup_query[j] = tolower(club_lookup_query[j]); // Makes all the characters in the club lookup query lowercase
                 }
@@ -109,7 +109,7 @@ void manage_clubs()
             printf("[7] Delete Club\n");
             printf("[R] Return\n");
 
-            choice = _getch();
+            choice = tolower(_getch());
             switch (choice)
             {
             case '1':
@@ -129,7 +129,7 @@ void manage_clubs()
                 break;
 
             case '5':
-                list_club_meetings(club);
+                list_club_meetings(club_pos);
                 break;
 
             case '6':
@@ -168,7 +168,7 @@ void register_club()
         print_greeting();
         printf("REGISTER NEW CLUB\n\n");
         printf("> Name: ");
-        char *club_name = read_fixed_length_input(MAX_CLUB_NAME_LENGTH);
+        char *club_name = read_variable_length_input();
         strcpy(club.name, club_name);
         free(club_name);
         if (strlen(club.name) > 0) // The club name must be at least 1 character long
@@ -219,7 +219,7 @@ void register_club()
         printf("> Name: %s\n", club.name);
         printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
         printf("> Description: ");
-        char *club_description = read_fixed_length_input(MAX_CLUB_DESCRIPTION_LENGTH);
+        char *club_description = read_variable_length_input();
         strcpy(club.description, club_description);
         free(club_description);
         if (strlen(club.description) > 0) // The club description must be at least 1 character long
@@ -596,7 +596,7 @@ void manage_club_members(int club_pos)
         printf("\n\n");
         printf("Press [E] to enroll a new member or [U] to rescind a membership. Otherwise, press [R] to return to the club menu.");
 
-        choice = _getch();
+        choice = tolower(_getch());
         switch (choice)
         {
         case 'e':
@@ -622,7 +622,7 @@ void enroll_new_member(struct Club club, int club_pos)
         printf("ENROLL NEW MEMBER TO CLUB '%s'\n\n", club.name);
         printf("Type in the full name or ID of the student you wish to enroll to the club '%s' and then press [Enter]. Otherwise, leave the field blank and press [Enter] to return to the club menu.\n\n", club.name);
 
-        char *student_lookup_query = read_fixed_length_input(MAX_STUDENT_NAME_LENGTH);
+        char *student_lookup_query = read_variable_length_input();
         if (strcmp(student_lookup_query, "") == 0)
         {
             free(student_lookup_query);
@@ -638,7 +638,7 @@ void enroll_new_member(struct Club club, int club_pos)
                 break;
             }
 
-            for (int j = 0; j < sizeof(student_lookup_query) / sizeof(char); j++)
+            for (int j = 0; j < strlen(student_lookup_query); j++)
             {
                 student_lookup_query[j] = tolower(student_lookup_query[j]); // Makes every character in the student lookup query lowercase
             }
@@ -724,7 +724,7 @@ void rescind_membership(struct Club club, int club_pos)
         printf("RESCIND MEMBERSHIP FROM CLUB '%s'\n\n", club.name);
         printf("Type in the full name or ID of the student whose membership of '%s' you wish to rescind and then press [Enter]. Otherwise, leave the field blank and press [Enter] to return to the club menu.\n\n", club.name);
 
-        char *student_lookup_query = read_fixed_length_input(MAX_STUDENT_NAME_LENGTH);
+        char *student_lookup_query = read_variable_length_input();
         if (strcmp(student_lookup_query, "") == 0)
         {
             break;
@@ -739,7 +739,7 @@ void rescind_membership(struct Club club, int club_pos)
                 break;
             }
 
-            for (int j = 0; j < sizeof(student_lookup_query) / sizeof(char); j++)
+            for (int j = 0; j < strlen(student_lookup_query); j++)
             {
                 student_lookup_query[j] = tolower(student_lookup_query[j]);
             }
@@ -856,7 +856,7 @@ void update_club_info(struct Club club, int club_pos)
         printf("[5] Password\n");
         printf("[R] Return");
 
-        choice = _getch();
+        choice = tolower(_getch());
 
         switch (choice)
         {
@@ -864,11 +864,11 @@ void update_club_info(struct Club club, int club_pos)
             print_greeting();
 
             printf("After typing the new name for '%s', press [Enter] to confirm.\n\n", club.name);
-            char *new_name = read_fixed_length_input(MAX_CLUB_NAME_LENGTH);
+            char *new_name = read_variable_length_input();
             while (strcmp(new_name, "") == 0)
             {
                 free(new_name); // Frees old pointer to new_name
-                char *new_name = read_fixed_length_input(MAX_CLUB_NAME_LENGTH);
+                char *new_name = read_variable_length_input();
             }
             char old_name[MAX_CLUB_NAME_LENGTH];
             strcpy(old_name, club.name);
@@ -923,11 +923,11 @@ void update_club_info(struct Club club, int club_pos)
             print_greeting();
 
             printf("After typing the new description for '%s', press [Enter] to confirm.\n\n", club.name);
-            char *new_description = read_fixed_length_input(MAX_CLUB_DESCRIPTION_LENGTH);
+            char *new_description = read_variable_length_input();
             while (strcmp(new_description, "") == 0)
             {
                 free(new_description); // Frees old pointer to new_description
-                char *new_description = read_fixed_length_input(MAX_CLUB_DESCRIPTION_LENGTH);
+                char *new_description = read_variable_length_input();
             }
             strcpy(clubs[club_pos].description, new_description);
             free(new_description);
@@ -1211,7 +1211,7 @@ void post_meeting(struct Club club, int club_pos)
     meeting.club_id = club.id;
 
     struct Meeting prev_meeting = {0};
-    for (int i = meeting_count - 1; i >= 0; i++)
+    for (int i = 0; i < meeting_count; i++)
     {
         if (meetings[i].club_id == club.id)
         {
@@ -1225,7 +1225,7 @@ void post_meeting(struct Club club, int club_pos)
         print_greeting();
         printf("POST MEETING FOR CLUB '%s'\n\n", club.name);
         printf("> Meeting Topic (max %d characters): ", MAX_MEETING_TOPIC_LENGTH);
-        char *meeting_topic = read_fixed_length_input(MAX_MEETING_TOPIC_LENGTH);
+        char *meeting_topic = read_variable_length_input();
         strcpy(meeting.topic, meeting_topic);
         if (strlen(meeting.topic) > 0)
         {
@@ -1385,7 +1385,7 @@ struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
             printf("[%d] %s: %s\n", member.id, member.name, is_present ? "P" : "A"); // Displays the member's ID, name, and attendance status
         }
 
-        choice = _getch();
+        choice = tolower(_getch());
         switch (choice)
         {
         case 's':                                     // An input of "s" moves the cursor down the list of attendees.
@@ -1461,10 +1461,11 @@ struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
 
 // list_club_meetings allows the administrator and club representatives to view a list of all meetings for a specific club.
 // The user can select a meeting to view its details.
-void list_club_meetings(struct Club club)
+void list_club_meetings(int club_pos)
 {
     print_greeting();
 
+    struct Club club = clubs[club_pos];
     if (club.meeting_count == 0) // Returns to the club menu if there are no posted meetings for the club
     {
         printf("No meetings have yet been posted for club '%s'. ", club.name);
@@ -1685,7 +1686,7 @@ void list_club_meetings(struct Club club)
             printf("> Attendance: %d/%d P; %d/%d A\n\n", meeting.present_member_count, club.member_count, meeting.absent_member_count, club.member_count);
             printf("Press [A] to view and edit the attendance sheet. Press [R] to return to the club menu.");
 
-            choice = _getch();
+            choice = tolower(_getch());
             if (choice == 'a')
             {
                 meeting = edit_attendance_sheet(club, meeting);

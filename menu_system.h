@@ -3,7 +3,6 @@
 void clear_console();
 void print_greeting();
 char *read_variable_length_input();
-char *read_fixed_length_input(int size);
 void show_main_menu();
 void show_admin_panel();
 void prompt_return(char *to);

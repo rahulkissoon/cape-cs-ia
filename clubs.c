@@ -473,8 +473,7 @@ void manage_club_members(int club_pos)
         char ***contents = malloc(club.member_count * sizeof(char **));
         if (contents == NULL)
         {
-            printf("Allocation of %lld bytes of memory failed", club.transaction_count * sizeof(char **));
-            exit(1);
+            report_alloc_error(club.member_count * sizeof(char **));
         }
         int total_columns = 4;
         char *column_headings[] = {
@@ -527,8 +526,7 @@ void manage_club_members(int club_pos)
             contents[i] = malloc(total_columns * sizeof(char *)); // contents[i] is the ith column of the table.
             if (contents[i] == NULL)
             {
-                printf("Allocation of %lld bytes of memory failed", total_columns * sizeof(char *));
-                exit(1);
+                report_alloc_error(total_columns * sizeof(char *));
             }
 
             for (int j = 0; j < total_columns; j++)
@@ -536,8 +534,7 @@ void manage_club_members(int club_pos)
                 contents[i][j] = malloc((column_widths[j] + 1) * sizeof(char)); // contents[i][j] represents the cell defined by the jth row and ith column.
                 if (contents[i][j] == NULL)
                 {
-                    printf("Allocation of %lld bytes of memory failed", (column_widths[j] + 1) * sizeof(char));
-                    exit(1);
+                    report_alloc_error((column_widths[j] + 1) * sizeof(char));
                 }
 
                 switch (j) // Formats the cell contents based on the type of data (indicated by j, that is the column)
@@ -547,8 +544,7 @@ void manage_club_members(int club_pos)
                     char *stringified_student_id = malloc((student_id_length + 1) * sizeof(char)); // The student ID length is variable, so a fixed-size array cannot be declared.
                     if (stringified_student_id == NULL)
                     {
-                        printf("Allocation of %lld bytes of memory failed", (student_id_length + 1) * sizeof(char));
-                        exit(1);
+                        report_alloc_error((student_id_length + 1) * sizeof(char));
                     }
                     snprintf(stringified_student_id, student_id_length + 1, "%d", student.id); // strcpy accepts a string input, not an integer input, so student.id must be converted to a string.
                     strcpy(contents[i][j], stringified_student_id);
@@ -1137,8 +1133,7 @@ void delete_club(struct Club club, int club_pos)
         meetings = realloc(meetings, (meeting_count == 0 ? 1 : meeting_count) * sizeof(struct Meeting));
         if (meetings == NULL)
         {
-            printf("Reallocation of %lld bytes of memory failed", meeting_count * sizeof(struct Meeting));
-            exit(1);
+            report_alloc_error(meeting_count * sizeof(struct Meeting));
         }
 
         for (int i = 0; i < transaction_count; i++)
@@ -1157,8 +1152,7 @@ void delete_club(struct Club club, int club_pos)
         transactions = realloc(transactions, (transaction_count == 0 ? 1 : transaction_count) * sizeof(struct Transaction));
         if (transactions == NULL)
         {
-            printf("Reallocation of %lld bytes of memory failed", transaction_count * sizeof(struct Transaction));
-            exit(1);
+            report_alloc_error(transaction_count * sizeof(struct Transaction));
         }
 
         for (int i = 0; i < club.member_count; i++)
@@ -1290,8 +1284,7 @@ void post_meeting(struct Club club, int club_pos)
     meetings = realloc(meetings, (meeting_count + 1) * sizeof(struct Meeting)); // meetings is dynamically allocated memory so it must be resized in order to store the new meeting
     if (meetings == NULL)
     {
-        printf("Reallocation of %lld bytes of memory failed", (meeting_count + 1) * sizeof(struct Meeting));
-        exit(1);
+        report_alloc_error((meeting_count + 1) * sizeof(struct Meeting));
     }
 
     // Saves the new meeting
@@ -1324,8 +1317,7 @@ struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
     int *attendee_ids = malloc(attendee_count * sizeof(int)); // The number of attendees varies from meeting to meeting, so attendee_ids must be dynamically allocated.
     if (attendee_ids == NULL)
     {
-        printf("Allocation of %lld bytes of memory failed", attendee_count * sizeof(int));
-        exit(1);
+        report_alloc_error(attendee_count * sizeof(int));
     }
 
     // Adds the absent members' IDs and the present members' IDs to the attendee_ids array
@@ -1476,8 +1468,7 @@ void list_club_meetings(int club_pos)
     struct Meeting *club_meetings = malloc(club.meeting_count * sizeof(struct Meeting)); // The number of club meetings is variable, so club_meetings must be dynamically allocated
     if (club_meetings == NULL)
     {
-        printf("Allocation of %lld bytes of memory failed", club.meeting_count * sizeof(struct Meeting));
-        exit(1);
+        report_alloc_error(club.meeting_count * sizeof(struct Meeting));
     }
     int j = 0;
     for (int i = 0; i < meeting_count; i++)
@@ -1503,8 +1494,7 @@ void list_club_meetings(int club_pos)
         char ***contents = malloc(club.meeting_count * sizeof(char **));
         if (contents == NULL)
         {
-            printf("Allocation of %lld bytes of memory failed", club.meeting_count * sizeof(char **));
-            exit(1);
+            report_alloc_error(club.meeting_count * sizeof(char **));
         }
         int total_columns = 5;
         char *column_headings[] = {"ID",
@@ -1561,8 +1551,7 @@ void list_club_meetings(int club_pos)
             contents[i] = malloc(total_columns * sizeof(char *)); // contents[i] is the ith column of the table.
             if (contents[i] == NULL)
             {
-                printf("Allocation of %lld bytes of memory failed", total_columns * sizeof(char *));
-                exit(1);
+                report_alloc_error(total_columns * sizeof(char *));
             }
 
             for (int j = 0; j < total_columns; j++) // Formats the cell contents based on the type of data (indicated by j, that is the column)
@@ -1570,8 +1559,7 @@ void list_club_meetings(int club_pos)
                 contents[i][j] = malloc((column_widths[j] + 1) * sizeof(char)); // contents[i][j] represents the cell defined by the jth row and ith column.
                 if (contents[i][j] == NULL)
                 {
-                    printf("Allocation of %lld bytes of memory failed", (column_widths[j] + 1) * sizeof(char));
-                    exit(1);
+                    report_alloc_error((column_widths[j] + 1) * sizeof(char));
                 }
 
                 switch (j) // Formats the cell contents based on the type of data (indicated by j, that is the column)
@@ -1581,8 +1569,7 @@ void list_club_meetings(int club_pos)
                     char *stringified_meeting_id = malloc((meeting_id_length + 1) * sizeof(char));
                     if (stringified_meeting_id == NULL)
                     {
-                        printf("Allocation of %lld bytes of memory failed", (meeting_id_length + 1) * sizeof(char));
-                        exit(1);
+                        report_alloc_error((meeting_id_length + 1) * sizeof(char));
                     }
                     snprintf(stringified_meeting_id, meeting_id_length + 1, "%d", meeting.id);
                     strcpy(contents[i][j], stringified_meeting_id); // strcpy accepts a string input, not an integer input, so meeting.id must be converted to a string.
@@ -1617,8 +1604,7 @@ void list_club_meetings(int club_pos)
                     char *stringified_attendance_rate = malloc((meeting_attendance_rate_length + 1) * sizeof(char));
                     if (stringified_attendance_rate == NULL)
                     {
-                        printf("Allocation of %lld bytes of memory failed", (meeting_attendance_rate_length + 1) * sizeof(char));
-                        exit(1);
+                        report_alloc_error((meeting_attendance_rate_length + 1) * sizeof(char));
                     }
                     snprintf(stringified_attendance_rate, meeting_attendance_rate_length + 1, "%.1lf%%", meeting_attendance_rate);
                     strcpy(contents[i][j], stringified_attendance_rate);

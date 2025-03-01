@@ -315,8 +315,7 @@ void register_student()
     students = realloc(students, (student_count + 1) * sizeof(struct Student)); // Reallocates memory for the students array to accommodate the new student
     if (students == NULL)
     {
-        printf("Reallocation of %lld bytes of memory failed", (student_count + 1) * sizeof(struct Student));
-        exit(1);
+        report_alloc_error((student_count + 1) * sizeof(struct Student));
     }
     students[student_count++] = student; // Saves the new student
     save_data_to_file();
@@ -470,8 +469,7 @@ void delete_student(struct Student student, int student_pos)
         students = realloc(students, (student_count == 0 ? 1 : student_count) * sizeof(struct Student)); // Reallocates memory for the students array to accommodate the new student count
         if (students == NULL)
         {
-            printf("Reallocation of %lld bytes of memory failed", student_count * sizeof(struct Student));
-            exit(1);
+            report_alloc_error((student_count == 0 ? 1 : student_count) * sizeof(struct Student));
         }
         save_data_to_file();
 

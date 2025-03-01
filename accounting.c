@@ -47,8 +47,7 @@ void view_club_ledger(int club_pos)
             char ***contents = malloc(club.transaction_count * sizeof(char **)); // Each transaction will be displayed on a separate cell.
             if (contents == NULL)
             {
-                printf("Allocation of %lld bytes of memory failed", club.transaction_count * sizeof(char **));
-                exit(1);
+                report_alloc_error(club.transaction_count * sizeof(char **));
             }
             int total_columns = 5;
             char *column_headings[] = {"ID",
@@ -116,8 +115,7 @@ void view_club_ledger(int club_pos)
                 contents[i] = malloc(total_columns * sizeof(char *)); // contents[i] is the ith column of the table.
                 if (contents[i] == NULL)
                 {
-                    printf("Allocation of %lld bytes of memory failed", total_columns * sizeof(char *));
-                    exit(1);
+                    report_alloc_error(total_columns * sizeof(char *));
                 }
 
                 for (int j = 0; j < total_columns; j++)
@@ -125,8 +123,7 @@ void view_club_ledger(int club_pos)
                     contents[i][j] = malloc((column_widths[j] + 1) * sizeof(char)); // contents[i][j] represents the cell defined by the jth row and ith column.
                     if (contents[i][j] == NULL)
                     {
-                        printf("Allocation of %lld bytes of memory failed", (column_widths[j] + 1) * sizeof(char));
-                        exit(1);
+                        report_alloc_error((column_widths[j] + 1) * sizeof(char));
                     }
 
                     switch (j) // Formats the cell contents based on the type of data (indicated by j, that is the column)
@@ -136,8 +133,7 @@ void view_club_ledger(int club_pos)
                         char *stringified_transaction_id = malloc((transaction_id_length + 1) * sizeof(char)); // The transaction ID length is variable, so a fixed-size array cannot be declared.
                         if (stringified_transaction_id == NULL)
                         {
-                            printf("Allocation of %lld bytes of memory failed", (transaction_id_length + 1) * sizeof(char));
-                            exit(1);
+                            report_alloc_error((transaction_id_length + 1) * sizeof(char));
                         }
                         snprintf(stringified_transaction_id, transaction_id_length + 1, "%d", transaction.id); // strcpy accepts a string input, not an integer input, so transaction.id must be converted to a string.
                         strcpy(contents[i][j], stringified_transaction_id);
@@ -157,8 +153,7 @@ void view_club_ledger(int club_pos)
                         char *stringified_transaction_amount = malloc((transaction_amount_length + 1) * sizeof(char)); // The transaction amount length is variable, so a fixed-size array cannot be declared.
                         if (stringified_transaction_amount == NULL)
                         {
-                            printf("Allocation of %lld bytes of memory failed", (transaction_amount_length + 1) * sizeof(char));
-                            exit(1);
+                            report_alloc_error((transaction_amount_length + 1) * sizeof(char));
                         }
                         snprintf(stringified_transaction_amount, (transaction_amount_length + 1), "%.2lf", transaction.amount); // strcpy accepts a string input, not a double input, so transaction.amount must be converted to a string
                         strcpy(contents[i][j], stringified_transaction_amount);
@@ -324,8 +319,7 @@ void record_transaction(struct Club club, int club_pos)
     transactions = realloc(transactions, (transaction_count + 1) * sizeof(struct Transaction));
     if (transactions == NULL)
     {
-        printf("Allocation of %lld bytes of memory failed", (transaction_count + 1) * sizeof(struct Transaction));
-        exit(1);
+        report_alloc_error((transaction_count + 1) * sizeof(struct Transaction));
     }
     transaction.id = ++clubs[club_pos].prev_transaction_id; // Increments the previous transaction ID of the club, setting transaction.id to its new value
     clubs[club_pos].transaction_count++;                    // Increments the total transaction count of the club

@@ -62,8 +62,7 @@ char *read_variable_length_input()
     char *buffer = malloc(sizeof(char)); // Allocates an initial buffer with a size of 1 char
     if (buffer == NULL)
     {
-        printf("Allocation of %lld bytes of memory failed", sizeof(char));
-        exit(1);
+        report_alloc_error(sizeof(char));
     }
 
     size_t buffer_size = 0;     // Stores the current size of the buffer
@@ -77,8 +76,7 @@ char *read_variable_length_input()
             buffer = realloc(buffer, buffer_capacity); // Reallocates the buffer with the new size
             if (buffer == NULL)
             {
-                printf("Reallocation of %lld bytes of memory failed", buffer_capacity);
-                exit(1);
+                report_alloc_error(buffer_capacity);
             }
         }
         buffer[buffer_size++] = input;
@@ -290,6 +288,7 @@ void print_table(int total_columns, int total_rows, int *column_widths, int tota
     printf("+");
 }
 
+// parse_time_input reads a date and time input from the user in the format "DD/MM/YYYY HH:MM" and converts it to a time_t timestamp.
 time_t parse_time_input()
 {
     char *unparsed_time = read_variable_length_input();
@@ -301,10 +300,18 @@ time_t parse_time_input()
     return mktime(&tm); // mktime converts the tm struct to a time_t
 }
 
+// format_time_t formats a time_t timestamp into a string with the format "DD/MM/YYYY HH:MM".
 char *format_time_t(time_t timestamp)
 {
     struct tm *tm = localtime(&timestamp);
-    static char formatted_time[17];
+    static char formatted_time[17] = "";
     strftime(formatted_time, sizeof(formatted_time), "%d/%m/%Y %H:%M", tm);
     return formatted_time;
+}
+
+// report_alloc_error reports an allocation error, quoting the number of bytes, and exits the program.
+void report_alloc_error(long long int bytes)
+{
+    printf("Failed to allocate %lld bytes of memory. Forcibly quitting program...", bytes);
+    exit(1);
 }

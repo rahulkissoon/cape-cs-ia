@@ -110,8 +110,7 @@ void load_data_from_file()
         meetings = malloc((meeting_count == 0 ? 1 : meeting_count) * sizeof(struct Meeting));
         if (meetings == NULL)
         {
-            printf("Allocation of %lld bytes of memory failed", meeting_count * sizeof(struct Meeting));
-            exit(1);
+            report_alloc_error((meeting_count == 0 ? 1 : meeting_count) * sizeof(struct Meeting));
         }
         for (int i = 0; i < meeting_count; i++)
         {
@@ -124,8 +123,7 @@ void load_data_from_file()
         students = malloc((student_count == 0 ? 1 : student_count) * sizeof(struct Student));
         if (students == NULL)
         {
-            printf("Allocation of %lld bytes of memory failed", student_count * sizeof(struct Student));
-            exit(1);
+            report_alloc_error((student_count == 0 ? 1 : student_count) * sizeof(struct Student));
         }
         for (int i = 0; i < student_count; i++) // Reads all student info
         {
@@ -185,10 +183,11 @@ void first_time_setup()
     printf("Administrator password successfully set. Press any key to continue.");
     _getch();
 
-    print_greeting();
-    printf("Please enter the name of your school. (Input will be truncated to first %d characters)\n\n", MAX_SCHOOL_NAME_LENGTH);
     while (strcmp(school_name, "") == 0)
     {
+        print_greeting();
+        printf("Please enter the name of your school. (Max %d characters)\n\n", MAX_SCHOOL_NAME_LENGTH);
+
         char *chosen_school_name = read_variable_length_input();
         if (strlen(chosen_school_name) > 0 && strlen(chosen_school_name) <= MAX_SCHOOL_NAME_LENGTH)
         {
@@ -207,12 +206,13 @@ void first_time_setup()
 // change_school_name lets the administrator change the name of the school.
 void change_school_name()
 {
-    print_greeting();
-    printf("Please enter the new name of your school. (Input will be truncated to first %d characters)\n\n", MAX_SCHOOL_NAME_LENGTH);
     char prev_school_name[MAX_SCHOOL_NAME_LENGTH] = "";
     strcpy(prev_school_name, school_name);
+
     while (true)
     {
+        print_greeting();
+        printf("Please enter the new name of your school. (Max %d characters)\n\n", MAX_SCHOOL_NAME_LENGTH);
         char *new_school_name = read_variable_length_input();
         if (strlen(new_school_name) > 0 && strlen(new_school_name) <= MAX_SCHOOL_NAME_LENGTH)
         {
@@ -223,6 +223,7 @@ void change_school_name()
         }
         free(new_school_name);
     }
+
     print_greeting();
     printf("School name successfully set to '%s' (previously '%s'). ", school_name, prev_school_name);
     prompt_return("the main menu");

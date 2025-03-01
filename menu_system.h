@@ -9,4 +9,5 @@ void prompt_return(char *to);
 void print_table(int total_columns, int total_rows, int *column_widths, int total_footer_rows, char *column_headings[], char ***contents, char *footer_rows[]);
 time_t parse_time_input();
 char *format_time_t();
+void report_alloc_error(long long int bytes);
 #endif

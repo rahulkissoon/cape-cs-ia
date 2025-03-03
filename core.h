@@ -1,5 +1,5 @@
-#ifndef DATABASE_H
-#define DATABASE_H
+#ifndef CORE_H_INCLUDED
+#define CORE_H_INCLUDED
 #define MAX_SCHOOL_NAME_LENGTH 68
 
 void first_time_setup();

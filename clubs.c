@@ -1,15 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 #include <conio.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include "accounting.h"
 #include "auth.h"
-#include "menu_system.h"
 #include "clubs.h"
 #include "core.h"
+#include "menu_system.h"
 #include "students.h"
 
 struct Club clubs[MAX_CLUBS] = {{0}}; // The clubs array is declared with MAX_CLUBS as its size. clubs is a global variable.
@@ -96,6 +95,7 @@ void manage_clubs()
         char choice = '\0';
         while (choice != 'r')
         {
+            club = clubs[club_pos]; // Refreshes club info in case any changes were made
             print_greeting();
             printf("MANAGE CLUB '%s'\n\n", club.name);
             printf("Press the key (indicated in brackets) corresponding to one of the options presented below to continue.\n\n");
@@ -138,6 +138,10 @@ void manage_clubs()
 
             case '7':
                 delete_club(club, club_pos);
+                if (clubs[club_pos].id != club.id) // If the ID of the club at the same position has changed, the club has been deleted.
+                {
+                    choice = 'r';
+                }
                 break;
             }
         }
@@ -167,7 +171,7 @@ void register_club()
     {
         print_greeting();
         printf("REGISTER NEW CLUB\n\n");
-        printf("> Name: ");
+        printf("> Name (max %d characters): ", MAX_CLUB_NAME_LENGTH);
         char *club_name = read_variable_length_input();
         strcpy(club.name, club_name);
         free(club_name);
@@ -218,11 +222,11 @@ void register_club()
         printf("REGISTER NEW CLUB\n\n");
         printf("> Name: %s\n", club.name);
         printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
-        printf("> Description: ");
+        printf("> Description (max %d characters): ", MAX_CLUB_DESCRIPTION_LENGTH);
         char *club_description = read_variable_length_input();
         strcpy(club.description, club_description);
         free(club_description);
-        if (strlen(club.description) > 0) // The club description must be at least 1 character long
+        if (strlen(club.description) > 0 && strlen(club.description) <= MAX_CLUB_DESCRIPTION_LENGTH) // The club description must be at least 1 character long
         {
             break;
         }
@@ -737,17 +741,18 @@ void rescind_membership(struct Club club, int club_pos)
 
             for (int j = 0; j < strlen(student_lookup_query); j++)
             {
-                student_lookup_query[j] = tolower(student_lookup_query[j]);
+                student_lookup_query[j] = tolower(student_lookup_query[j]); // Makes every character in the student lookup query lowercase
             }
             char student_name[MAX_STUDENT_NAME_LENGTH];
             strcpy(student_name, students[i].name);
             for (int j = 0; j < sizeof(student_name) / sizeof(char); j++)
             {
-                student_name[j] = tolower(student_name[j]);
+                student_name[j] = tolower(student_name[j]); // Makes every character in the student name lowercase
             }
             if (strcmp(student_name, student_lookup_query) == 0)
             {
                 student = students[i];
+                student_pos = i;
                 free(student_lookup_query);
                 break;
             }
@@ -859,20 +864,22 @@ void update_club_info(struct Club club, int club_pos)
         case '1':
             print_greeting();
 
-            printf("After typing the new name for '%s', press [Enter] to confirm.\n\n", club.name);
-            char *new_name = read_variable_length_input();
-            while (strcmp(new_name, "") == 0)
+            printf("After typing the new name for '%s' (max %d characters), press [Enter] to confirm.\n\n", club.name, MAX_CLUB_NAME_LENGTH);
+            char old_name[MAX_CLUB_NAME_LENGTH] = "";
+            while (true)
             {
-                free(new_name); // Frees old pointer to new_name
                 char *new_name = read_variable_length_input();
+                if (strlen(new_name) > 0 && strlen(new_name) <= MAX_CLUB_NAME_LENGTH)
+                {
+                    strcpy(old_name, club.name);
+                    strcpy(clubs[club_pos].name, new_name);
+                    save_data_to_file();
+                    break;
+                }
+                free(new_name); // Frees old pointer to new_name
             }
-            char old_name[MAX_CLUB_NAME_LENGTH];
-            strcpy(old_name, club.name);
-            strcpy(clubs[club_pos].name, new_name);
-            free(new_name);
-            save_data_to_file();
             print_greeting();
-            printf("Successfully updated the name of '%s' (previously '%s'). ", new_name, old_name);
+            printf("Successfully updated the name of '%s' (previously '%s'). ", clubs[club_pos].name, old_name);
             break;
 
         case '2':
@@ -887,7 +894,7 @@ void update_club_info(struct Club club, int club_pos)
             char old_weekly_meeting_day[9];
             strcpy(old_weekly_meeting_day, club.weekly_meeting_day);
             char new_weekly_meeting_day = '\0';
-            while (new_weekly_meeting_day == '\0')
+            while (strcmp(club.weekly_meeting_day, "") == 0)
             {
                 new_weekly_meeting_day = _getch();
                 switch (new_weekly_meeting_day)
@@ -918,16 +925,19 @@ void update_club_info(struct Club club, int club_pos)
         case '3':
             print_greeting();
 
-            printf("After typing the new description for '%s', press [Enter] to confirm.\n\n", club.name);
-            char *new_description = read_variable_length_input();
-            while (strcmp(new_description, "") == 0)
+            printf("After typing the new description for '%s' (max %d characters), press [Enter] to confirm.\n\n", club.name, MAX_CLUB_DESCRIPTION_LENGTH);
+            while (true)
             {
-                free(new_description); // Frees old pointer to new_description
                 char *new_description = read_variable_length_input();
+                if (strlen(new_description) > 0 && strlen(new_description) <= MAX_CLUB_DESCRIPTION_LENGTH)
+                {
+                    strcpy(clubs[club_pos].description, new_description);
+                    free(new_description);
+                    save_data_to_file();
+                    break;
+                }
+                free(new_description); // Frees old pointer to new_description
             }
-            strcpy(clubs[club_pos].description, new_description);
-            free(new_description);
-            save_data_to_file();
             print_greeting();
             printf("Successfully updated the description of '%s'. ", club.name);
             break;
@@ -948,10 +958,16 @@ void update_club_info(struct Club club, int club_pos)
 
                         strcat(prev_student_reps, student.name);
                         strcat(prev_student_reps, " [");
-                        char stringified_student_id[5] = "";
+                        int student_id_length = snprintf(NULL, 0, "%d", student.id);
+                        char *stringified_student_id = malloc(sizeof(char) * (student_id_length + 1)); // The student ID length is variable, so a fixed-size array cannot be declared.
+                        if (stringified_student_id == NULL)
+                        {
+                            report_alloc_error((student_id_length + 1) * sizeof(char));
+                        }
                         snprintf(stringified_student_id, sizeof(stringified_student_id), "%d", student.id);
                         strcat(prev_student_reps, stringified_student_id);
                         strcat(prev_student_reps, "]");
+                        free(stringified_student_id);
                         break;
                     }
                 }
@@ -1237,7 +1253,7 @@ void post_meeting(struct Club club, int club_pos)
         printf("> Convened At (DD/MM/YYYY HH:MM): ");
 
         meeting.convened_at = parse_time_input();
-        if (meeting.convened_at == (time_t)-1 || meeting.convened_at > time(NULL) || (prev_meeting.id > 0 && meeting.convened_at <= prev_meeting.convened_at))
+        if (meeting.convened_at == (time_t)-1 || meeting.convened_at > time(NULL)) // If the time inputted is invalid or greater than the current time
         {
             continue;
         }
@@ -1251,12 +1267,12 @@ void post_meeting(struct Club club, int club_pos)
     {
         print_greeting();
         printf("POST MEETING FOR CLUB '%s'\n\n", club.name);
-        printf("> Meeting Topic (max %d characters): %s\n", MAX_MEETING_TOPIC_LENGTH, meeting.topic);
+        printf("> Meeting Topic: %s\n", MAX_MEETING_TOPIC_LENGTH, meeting.topic);
         printf("> Convened At (DD/MM/YYYY HH:MM): %s\n", format_time_t(meeting.convened_at));
         printf("> Adjourned At (DD/MM/YYYY HH:MM): ");
 
         meeting.adjourned_at = parse_time_input();
-        if (meeting.adjourned_at == (time_t)-1 || meeting.adjourned_at > time(NULL) || meeting.adjourned_at <= meeting.convened_at)
+        if (meeting.adjourned_at == (time_t)-1 || meeting.adjourned_at > time(NULL) || meeting.adjourned_at <= meeting.convened_at) // If the time inputted is invalid, greater than the current time, or earlier than or at the time at which the meeting was convened at
         {
             continue;
         }

@@ -1,9 +1,9 @@
 #include <conio.h>
 #include <math.h>
 #include <stdio.h>
-#include <Windows.h>
 #include <stdlib.h>
 #include <string.h>
+#include <Windows.h>
 #include "auth.h"
 #include "core.h"
 #include "clubs.h"

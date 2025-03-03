@@ -1,8 +1,8 @@
 #include <time.h>
 #include "clubs.h"
 
-#ifndef ACCOUNTING_H
-#define ACCOUNTING_H
+#ifndef ACCOUNTING_H_INCLUDED
+#define ACCOUNTING_H_INCLUDED
 #define MAX_PARTICULARS_LENGTH 40
 
 enum TransactionNature

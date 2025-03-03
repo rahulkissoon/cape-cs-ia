@@ -1,12 +1,12 @@
-#include "students.h"
 #include <time.h>
+#include "students.h"
 
-#ifndef CLUBS_H
-#define CLUBS_H
+#ifndef CLUBS_H_INCLUDED
+#define CLUBS_H_INCLUDED
 
 #define MAX_CLUBS 100
-#define MAX_CLUB_NAME_LENGTH 255
-#define MAX_CLUB_DESCRIPTION_LENGTH 512
+#define MAX_CLUB_NAME_LENGTH 68
+#define MAX_CLUB_DESCRIPTION_LENGTH 100
 #define MAX_WEEKLY_MEETING_DAY_LENGTH 9
 #define MAX_MEMBERS_PER_CLUB 1024
 #define MAX_STUDENT_REPS_PER_CLUB 1024

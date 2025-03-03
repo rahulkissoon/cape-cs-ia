@@ -221,7 +221,7 @@ void record_transaction(struct Club club, int club_pos)
         printf("> Particulars (max %d characters): ", MAX_PARTICULARS_LENGTH);
         char *transaction_particulars = read_variable_length_input(); // Accepts a fixed-length input for the particulars of the transaction
         strcpy(transaction.particulars, transaction_particulars);
-        if (strlen(transaction.particulars) > 0)
+        if (strlen(transaction.particulars) > 0 && strlen(transaction.particulars) <= MAX_PARTICULARS_LENGTH)
         {
             free(transaction_particulars);
             break; // If the user has input a non-zero-length string for the particulars, continue.

@@ -1,5 +1,5 @@
-#ifndef MENU_SYSTEM_H
-#define MENU_SYSTEM_H
+#ifndef MENU_SYSTEM_H_INCLUDED
+#define MENU_SYSTEM_H_INCLUDED
 void clear_console();
 void print_greeting();
 char *read_variable_length_input();

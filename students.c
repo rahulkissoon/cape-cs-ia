@@ -7,9 +7,9 @@
 #include <time.h>
 #include "auth.h"
 #include "clubs.h"
-#include "students.h"
 #include "core.h"
 #include "menu_system.h"
+#include "students.h"
 
 // These count variables are initialized to be 0, will be read later from the data file. These are global variables.
 int student_count = 0;
@@ -87,7 +87,7 @@ void manage_students()
         char choice = '\0';
         while (choice != 'r')
         {
-            student = students[student_pos];
+            student = students[student_pos]; // Refreshes student info in case any changes were made
             print_greeting();
             printf("MANAGE STUDENT '%s'\n\n", student.name);
             printf("Press the key (indicated in brackets) corresponding to one of the options presented below to continue.\n\n");
@@ -110,7 +110,10 @@ void manage_students()
 
             case '3':
                 delete_student(student, student_pos);
-                choice = 'r';
+                if (students[student_pos].id != student.id) // If the ID of the student at the same position has changed, the student has been deleted.
+                {
+                    choice = 'r';
+                }
                 break;
             }
         }
@@ -185,58 +188,67 @@ void update_student_info(struct Student student, int student_pos)
         case '1': // Updates the student's name
             print_greeting();
 
-            printf("After typing the new name for %s, press [Enter] to confirm.\n\n", student.name);
-            char *new_name = read_variable_length_input();
-            while (strcmp(new_name, "") == 0)
+            printf("After typing the new name for %s (max %d characters), press [Enter] to confirm.\n\n", student.name, MAX_STUDENT_NAME_LENGTH);
+            char old_name[MAX_STUDENT_NAME_LENGTH] = "";
+            while (true)
             {
-                free(new_name); // Frees the old pointer to new_name
                 char *new_name = read_variable_length_input();
+                if (strlen(new_name) > 0 && strlen(new_name) <= MAX_STUDENT_NAME_LENGTH)
+                {
+                    strcpy(old_name, student.name);
+                    strcpy(students[student_pos].name, new_name);
+                    save_data_to_file();
+                    free(new_name);
+                    break;
+                }
+                free(new_name); // Frees the old pointer to new_name
             }
-            char old_name[MAX_STUDENT_NAME_LENGTH];
-            strcpy(old_name, student.name);
-            strcpy(students[student_pos].name, new_name);
-            save_data_to_file();
             print_greeting();
-            printf("Successfully updated the name of %s (previously '%s'). ", new_name, old_name);
-            free(new_name);
+            printf("Successfully updated the name of %s (previously '%s'). ", students[student_pos].name, old_name);
             break;
 
         case '2': // Updates the student's class
             print_greeting();
 
-            printf("After typing the new class for %s, press [Enter] to confirm.\n\n", student.name);
-            char *new_class = read_variable_length_input();
-            while (strcmp(new_class, "") == 0)
+            printf("After typing the new class for %s (max %d characters), press [Enter] to confirm.\n\n", student.name, MAX_CLASS_NAME_LENGTH);
+            char old_class[MAX_CLASS_NAME_LENGTH] = "";
+            while (true)
             {
-                free(new_class); // Frees the old pointer to new_class
                 char *new_class = read_variable_length_input();
+                if (strlen(new_class) > 0 && strlen(new_class) <= MAX_CLASS_NAME_LENGTH)
+                {
+                    strcpy(old_class, student.class);
+                    strcpy(students[student_pos].class, new_class);
+                    save_data_to_file();
+                    free(new_class);
+                    break;
+                }
+                free(new_class); // Frees the old pointer to new_class
             }
-            char old_class[MAX_CLASS_NAME_LENGTH];
-            strcpy(old_class, student.class);
-            strcpy(students[student_pos].class, new_class);
-            save_data_to_file();
             print_greeting();
-            printf("Successfully updated the %s's class to %s (previously '%s'). ", student.name, new_class, old_class);
-            free(new_class);
+            printf("Successfully updated the %s's class to %s (previously '%s'). ", student.name, student.class, old_class);
             break;
 
         case '3': // Updates the student's email address
             print_greeting();
 
-            printf("After typing the new email address for %s, press [Enter] to confirm.\n\n", student.name);
-            char *new_email_address = read_variable_length_input();
-            while (strcmp(new_email_address, "") == 0)
+            printf("After typing the new email address for %s (max %d characters), press [Enter] to confirm.\n\n", student.name, MAX_EMAIL_ADDRESS_LENGTH);
+            char old_email_address[MAX_EMAIL_ADDRESS_LENGTH] = "";
+            while (true)
             {
-                free(new_email_address); // Frees the old pointer to new_email_address
                 char *new_email_address = read_variable_length_input();
+                if (strlen(new_email_address) > 0 && strlen(new_email_address) <= MAX_EMAIL_ADDRESS_LENGTH)
+                {
+                    strcpy(old_email_address, student.email_address);
+                    strcpy(students[student_pos].email_address, new_email_address);
+                    save_data_to_file();
+                    free(new_email_address);
+                    break;
+                }
+                free(new_email_address); // Frees the old pointer to new_email_address
             }
-            char old_email_address[MAX_EMAIL_ADDRESS_LENGTH];
-            strcpy(old_email_address, student.email_address);
-            strcpy(students[student_pos].email_address, new_email_address);
-            save_data_to_file();
             print_greeting();
-            printf("Successfully updated the %s's email address to %s (previously %s). ", student.name, new_email_address, old_email_address);
-            free(new_email_address);
+            printf("Successfully updated the %s's email address to %s (previously %s). ", student.name, student.email_address, old_email_address);
             break;
         }
 
@@ -256,11 +268,11 @@ void register_student()
     {
         print_greeting();
         printf("REGISTER NEW STUDENT\n\n");
-        printf("Name: ");
+        printf("Name (max %d characters): ", MAX_STUDENT_NAME_LENGTH);
         char *student_name = read_variable_length_input();
         strcpy(student.name, student_name);
         free(student_name);
-        if (strlen(student.name) > 0) // If the student's name is not empty, break out of the loop.
+        if (strlen(student.name) > 0 && strlen(student.name) <= MAX_STUDENT_NAME_LENGTH) // If the student's name is not empty, break out of the loop.
         {
             break;
         }
@@ -270,12 +282,12 @@ void register_student()
         print_greeting();
         printf("REGISTER NEW STUDENT\n\n");
         printf("Name: %s\n", student.name);
-        printf("Class: ");
+        printf("Class (max %d characters): ", MAX_CLASS_NAME_LENGTH);
 
         char *student_class = read_variable_length_input();
         strcpy(student.class, student_class);
         free(student_class);
-        if (strlen(student.class) > 0) // If the student's class is not empty, break out of the loop.
+        if (strlen(student.class) > 0 && strlen(student.class) <= MAX_CLASS_NAME_LENGTH) // If the student's class is not empty, break out of the loop.
         {
             break;
         }

@@ -1,12 +1,12 @@
 #include <stdbool.h>
 #include <time.h>
 
-#ifndef STUDENTS_H
-#define STUDENTS_H
+#ifndef STUDENTS_H_INCLUDED
+#define STUDENTS_H_INCLUDED
 
-#define MAX_STUDENT_NAME_LENGTH 256
-#define MAX_CLASS_NAME_LENGTH 256
-#define MAX_EMAIL_ADDRESS_LENGTH 320
+#define MAX_STUDENT_NAME_LENGTH 68
+#define MAX_CLASS_NAME_LENGTH 10
+#define MAX_EMAIL_ADDRESS_LENGTH 254
 #define MAX_CLUB_MEMBERSHIPS 100
 
 struct Student

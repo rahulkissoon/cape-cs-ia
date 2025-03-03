@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include "menu_system.h"
-#include "clubs.h"
 #include "auth.h"
+#include "clubs.h"
 #include "core.h"
+#include "menu_system.h"
 
 int main()
 {

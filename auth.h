@@ -1,9 +1,9 @@
-#include <time.h>
 #include <stdbool.h>
+#include <time.h>
 #include "students.h"
 
-#ifndef AUTH_H
-#define AUTH_H
+#ifndef AUTH_H_INCLUDED
+#define AUTH_H_INCLUDED
 #define MIN_PASSWORD_LENGTH 8
 
 extern char *admin_password;

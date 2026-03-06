@@ -5,15 +5,6 @@
 #define ACCOUNTING_H_INCLUDED
 #define MAX_PARTICULARS_LENGTH 40
 
-enum TransactionNature
-{
-    ASSETS,
-    LIABILITIES,
-    INCOME,
-    CAPITAL,
-    EXPENSES
-};
-
 enum TransactionType
 {
     DEBIT,
@@ -27,7 +18,6 @@ struct Transaction
     char particulars[MAX_PARTICULARS_LENGTH];
     double amount;
     enum TransactionType type;
-    enum TransactionNature nature;
     time_t time;
 };
 

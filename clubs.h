@@ -1,5 +1,6 @@
 #include <time.h>
 #include "students.h"
+#include "core.h"
 
 #ifndef CLUBS_H_INCLUDED
 #define CLUBS_H_INCLUDED
@@ -17,9 +18,9 @@ struct Meeting
     int id;
     int club_id;
     char topic[MAX_MEETING_TOPIC_LENGTH];
-    int present_member_ids[MAX_MEMBERS_PER_CLUB];
+    struct Node *present_member_ids;
     int present_member_count;
-    int absent_member_ids[MAX_MEMBERS_PER_CLUB];
+    struct Node *absent_member_ids;
     int absent_member_count;
     time_t convened_at;
     time_t adjourned_at;
@@ -30,9 +31,9 @@ struct Club
     int id;
     char name[MAX_CLUB_NAME_LENGTH];
     char description[MAX_CLUB_DESCRIPTION_LENGTH];
-    int student_rep_ids[MAX_STUDENT_REPS_PER_CLUB];
+    struct Node *student_rep_ids;
     int student_rep_count;
-    int member_ids[MAX_MEMBERS_PER_CLUB];
+    struct Node *member_ids;
     int member_count;
     char weekly_meeting_day[MAX_WEEKLY_MEETING_DAY_LENGTH];
     char *password;

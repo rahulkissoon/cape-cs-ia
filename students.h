@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <time.h>
+#include "core.h"
 
 #ifndef STUDENTS_H_INCLUDED
 #define STUDENTS_H_INCLUDED
@@ -15,7 +16,7 @@ struct Student
     char name[MAX_STUDENT_NAME_LENGTH];
     char class[MAX_CLASS_NAME_LENGTH];
     char email_address[MAX_EMAIL_ADDRESS_LENGTH];
-    int club_memberships[MAX_CLUB_MEMBERSHIPS];
+    struct Node *club_memberships;
     time_t registered_at;
 };
 extern struct Student *students;

@@ -292,11 +292,23 @@ void print_table(int total_columns, int total_rows, int *column_widths, int tota
 time_t parse_time_input()
 {
     char *unparsed_time = read_variable_length_input();
+    if (!unparsed_time)
+    {
+        return (time_t)-1;
+    }
+
     struct tm tm = {0};
-    sscanf(unparsed_time, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min); // sscanf reads the input string and assigns the values to the tm struct
+    int matched = sscanf(unparsed_time, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min); // sscanf reads the input string and assigns the values to the tm struct
     free(unparsed_time);
+    if (matched != 5)
+    {
+        return (time_t)-1;
+    }
+
     tm.tm_year -= 1900; // tm_year is years since 1900
     tm.tm_mon -= 1;     // tm_mon starts counting at 0
+    tm.tm_isdst = -1;
+
     return mktime(&tm); // mktime converts the tm struct to a time_t
 }
 

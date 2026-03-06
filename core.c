@@ -7,6 +7,7 @@
 #include "accounting.h"
 #include "auth.h"
 #include "core.h"
+#include "linked_lists.h"
 #include "menu_system.h"
 #include "clubs.h"
 #include "students.h"
@@ -57,8 +58,29 @@ void save_data_to_file()
     fwrite(&prev_club_id, sizeof(int), 1, clubs_datafile_ptr); // Saves the previous club ID
     for (int i = 0; i < club_count; i++)                       // Saves all club info
     {
-        fwrite(&clubs[i], sizeof(struct Club), 1, clubs_datafile_ptr);
-        fwrite(clubs[i].password, sizeof(char), clubs[i].password_length, clubs_datafile_ptr);
+        struct Club club = clubs[i];
+
+        // Prevent writing pointers to the files
+        char *club_password = club.password;
+        struct Node *curr_member_id = club.member_ids;
+        struct Node *curr_student_rep_id = club.student_rep_ids;
+        club.password = NULL;
+        club.member_ids = NULL;
+        club.student_rep_ids = NULL;
+
+        fwrite(&club, sizeof(struct Club), 1, clubs_datafile_ptr);
+        fwrite(club_password, sizeof(char), clubs[i].password_length, clubs_datafile_ptr);
+
+        while (curr_member_id != NULL)
+        {
+            fwrite(&curr_member_id->data, sizeof(int), 1, clubs_datafile_ptr);
+            curr_member_id = curr_member_id->next;
+        }
+        while (curr_student_rep_id != NULL)
+        {
+            fwrite(&curr_student_rep_id->data, sizeof(int), 1, clubs_datafile_ptr);
+            curr_student_rep_id = curr_student_rep_id->next;
+        }
     }
 
     for (int i = 0; i < transaction_count; i++) // Saves all transactions
@@ -68,14 +90,46 @@ void save_data_to_file()
 
     for (int i = 0; i < meeting_count; i++) // Saves all club meetings
     {
-        fwrite(&meetings[i], sizeof(struct Meeting), 1, meetings_datafile_ptr);
+        struct Meeting meeting = meetings[i];
+
+        // Prevent writing pointers to files
+        struct Node *curr_present_member_id = meeting.present_member_ids;
+        struct Node *curr_absent_member_id = meeting.absent_member_ids;
+        meeting.absent_member_ids = NULL;
+        meeting.present_member_ids = NULL;
+
+        fwrite(&meeting, sizeof(struct Meeting), 1, meetings_datafile_ptr);
+
+        while (curr_absent_member_id != NULL)
+        {
+            fwrite(&curr_absent_member_id->data, sizeof(int), 1, meetings_datafile_ptr);
+            curr_absent_member_id = curr_absent_member_id->next;
+        }
+        while (curr_present_member_id != NULL)
+        {
+            fwrite(&curr_present_member_id->data, sizeof(int), 1, meetings_datafile_ptr);
+            curr_present_member_id = curr_present_member_id->next;
+        }
     }
 
     fwrite(&student_count, sizeof(int), 1, students_datafile_ptr);   // Saves the student count
     fwrite(&prev_student_id, sizeof(int), 1, students_datafile_ptr); // Saves the previous student ID
     for (int i = 0; i < student_count; i++)                          // Saves all student info
     {
-        fwrite(&students[i], sizeof(struct Student), 1, students_datafile_ptr);
+        struct Student student = students[i];
+
+        // Prevent writing pointers to files
+        struct Node *club_memberships = student.club_memberships;
+        student.club_memberships = NULL;
+        fwrite(&student, sizeof(struct Student), 1, students_datafile_ptr);
+
+        int club_membership_count = get_size(club_memberships);
+        fwrite(&club_membership_count, sizeof(int), 1, students_datafile_ptr);
+        while (club_memberships != NULL)
+        {
+            fwrite(&club_memberships->data, sizeof(int), 1, students_datafile_ptr);
+            club_memberships = club_memberships->next;
+        }
     }
 
     // Closes the datafiles
@@ -115,9 +169,26 @@ void load_data_from_file()
         fread(&prev_club_id, sizeof(int), 1, clubs_datafile_ptr); // Reads the previous club ID
         for (int i = 0; i < club_count; i++)                      // Reads all club info
         {
-            fread(&clubs[i], sizeof(struct Club), 1, clubs_datafile_ptr);
-            clubs[i].password = malloc(clubs[i].password_length * sizeof(char)); // Allocates enough memory based on the length of the club password
-            fread(clubs[i].password, sizeof(char), clubs[i].password_length, clubs_datafile_ptr);
+            struct Club *club = &clubs[i];
+            fread(club, sizeof(struct Club), 1, clubs_datafile_ptr);
+            club->password = malloc(clubs[i].password_length * sizeof(char)); // Allocates enough memory based on the length of the club password
+            fread(club->password, sizeof(char), club->password_length, clubs_datafile_ptr);
+
+            club->member_ids = NULL;
+            for (int j = 0; j < club->member_count; j++)
+            {
+                int member_id = 0;
+                fread(&member_id, sizeof(member_id), 1, clubs_datafile_ptr);
+                insert_after_last_node(&club->member_ids, member_id);
+            }
+
+            club->student_rep_ids = NULL;
+            for (int j = 0; j < club->student_rep_count; j++)
+            {
+                int student_rep_id = 0;
+                fread(&student_rep_id, sizeof(student_rep_id), 1, clubs_datafile_ptr);
+                insert_after_last_node(&club->student_rep_ids, student_rep_id);
+            }
 
             meeting_count += clubs[i].meeting_count;         // Increments the global meeting count based on meeting count of the club
             transaction_count += clubs[i].transaction_count; // Increments the global transaction count based on transaction count of the club
@@ -143,7 +214,24 @@ void load_data_from_file()
         }
         for (int i = 0; i < meeting_count; i++)
         {
-            fread(&meetings[i], sizeof(struct Meeting), 1, meetings_datafile_ptr);
+            struct Meeting *meeting = &meetings[i];
+            fread(meeting, sizeof(struct Meeting), 1, meetings_datafile_ptr);
+
+            meeting->absent_member_ids = NULL;
+            meeting->present_member_ids = NULL;
+
+            for (int k = 0; k < meeting->absent_member_count; k++)
+            {
+                int absent_member_id = 0;
+                fread(&absent_member_id, sizeof(absent_member_id), 1, meetings_datafile_ptr);
+                insert_after_last_node(&meeting->absent_member_ids, absent_member_id);
+            }
+            for (int k = 0; k < meeting->present_member_count; k++)
+            {
+                int present_member_id = 0;
+                fread(&present_member_id, sizeof(present_member_id), 1, meetings_datafile_ptr);
+                insert_after_last_node(&meeting->present_member_ids, present_member_id);
+            }
         }
     }
 
@@ -159,7 +247,18 @@ void load_data_from_file()
         }
         for (int i = 0; i < student_count; i++) // Reads all student info
         {
-            fread(&students[i], sizeof(struct Student), 1, students_datafile_ptr);
+            struct Student *student = &students[i];
+            fread(student, sizeof(struct Student), 1, students_datafile_ptr);
+
+            int club_membership_count = 0;
+            fread(&club_membership_count, sizeof(int), 1, students_datafile_ptr);
+            student->club_memberships = NULL;
+            for (int j = 0; j < club_membership_count; j++)
+            {
+                int club_id = 0;
+                fread(&club_id, sizeof(club_id), 1, students_datafile_ptr);
+                insert_after_last_node(&student->club_memberships, club_id);
+            }
         }
     }
 
@@ -206,7 +305,6 @@ void first_time_setup()
         }
         else
         {
-            free(admin_password);
             free(admin_password_confirmation);
             break;
         }

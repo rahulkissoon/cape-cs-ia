@@ -8,6 +8,7 @@
 #include "auth.h"
 #include "clubs.h"
 #include "core.h"
+#include "linked_lists.h"
 #include "menu_system.h"
 #include "students.h"
 
@@ -132,34 +133,31 @@ void view_student_info(struct Student student)
     printf("> Email Address: %s\n", student.email_address);
     printf("> Registered At: %s\n", format_time_t(student.registered_at));
     printf("> Club Memberships: ");
-    if (student.club_memberships[0] == 0)
+    if (student.club_memberships == NULL)
     {
         printf("None");
     }
     else
     {
-        for (int i = 0; i < sizeof(student.club_memberships) / sizeof(int); i++)
+        struct Node *curr_club_membership = student.club_memberships;
+        while (curr_club_membership != NULL)
         {
-            int club_id = student.club_memberships[i];
-            if (club_id == 0)
-            {
-                break;
-            }
-
             struct Club club = {0};
             for (int j = 0; j < club_count; j++)
             {
-                if (clubs[j].id == club_id)
+                if (clubs[j].id == curr_club_membership->data)
                 {
                     club = clubs[j];
                     break;
                 }
             }
             printf("%s", club.name);
-            if (i < MAX_CLUB_MEMBERSHIPS - 1 && student.club_memberships[i + 1] != 0) // If this club membership is not the last, print a comma.
+            if (curr_club_membership->next != NULL) // If this club membership is not the last, print a comma.
             {
                 printf(", ");
             }
+
+            curr_club_membership = curr_club_membership->next;
         }
     }
     printf("\n\n");
@@ -226,7 +224,7 @@ void update_student_info(struct Student student, int student_pos)
                 free(new_class); // Frees the old pointer to new_class
             }
             print_greeting();
-            printf("Successfully updated the %s's class to %s (previously '%s'). ", student.name, student.class, old_class);
+            printf("Successfully updated the %s's class to %s (previously '%s'). ", student.name, students[student_pos].class, old_class);
             break;
 
         case '3': // Updates the student's email address
@@ -248,7 +246,7 @@ void update_student_info(struct Student student, int student_pos)
                 free(new_email_address); // Frees the old pointer to new_email_address
             }
             print_greeting();
-            printf("Successfully updated the %s's email address to %s (previously %s). ", student.name, student.email_address, old_email_address);
+            printf("Successfully updated the %s's email address to %s (previously %s). ", student.name, students[student_pos].email_address, old_email_address);
             break;
         }
 
@@ -322,8 +320,9 @@ void register_student()
         printf("Registration of student '%s' cancelled. ", student.name);
         return prompt_return("the main menu");
     }
-    student.registered_at = time(NULL);                                         // Sets the student's registration date to the current time
-    student.id = ++prev_student_id;                                             // Increments the previous student ID global variable and sets the student ID
+    student.registered_at = time(NULL); // Sets the student's registration date to the current time
+    student.id = ++prev_student_id;     // Increments the previous student ID global variable and sets the student ID
+    student.club_memberships = NULL;
     students = realloc(students, (student_count + 1) * sizeof(struct Student)); // Reallocates memory for the students array to accommodate the new student
     if (students == NULL)
     {
@@ -359,29 +358,25 @@ void delete_student(struct Student student, int student_pos)
     }
     else
     {
-        for (int i = 0; i < sizeof(student.club_memberships) / sizeof(int); i++)
+        struct Node *curr_club_membership = student.club_memberships;
+        while (curr_club_membership != NULL)
         {
-            if (student.club_memberships[i] == 0) // Breaks the loop once the student's club memberships are exhausted (indicated by a club ID of 0)
-            {
-                break;
-            }
-
             struct Club club = {0};
             int club_pos;
-            for (int j = 0; j < club_count; j++) // Iterates through the clubs to find the corresponding club
+            for (int i = 0; i < club_count; i++) // Iterates through the clubs to find the corresponding club
             {
-                if (clubs[j].id == student.club_memberships[i])
+                if (clubs[i].id == curr_club_membership->data)
                 {
-                    club_pos = j;
-                    club = clubs[j];
+                    club_pos = i;
+                    club = clubs[i];
                     break;
                 }
             }
 
             bool is_student_rep = false; // Indicates whether the student is a student representative of the club
-            for (int j = 0; j < club.student_rep_count; j++)
+            for (int i = 0; i < club.student_rep_count; i++)
             {
-                if (club.student_rep_ids[j] == student.id)
+                if (does_node_exist(club.student_rep_ids, student.id))
                 {
                     is_student_rep = true;
                     break;
@@ -395,78 +390,35 @@ void delete_student(struct Student student, int student_pos)
                 return prompt_return("the student menu");
             }
 
-            for (int j = 0; j < club.member_count; j++)
-            {
-                if (club.member_ids[j] == student.id)
-                {
-                    if (club.member_count > j + 1) // If the student is not the last member of the club, shift the following members to the left
-                    {
-                        for (int k = j; k < club.member_count - 1; k++)
-                        {
-                            clubs[club_pos].member_ids[k] = clubs[club_pos].member_ids[k + 1];
-                        }
-                    }
-                    break;
-                }
-            }
-            clubs[club_pos].member_ids[clubs[club_pos].member_count--] = 0; // Decrements the club's member count and sets the last member ID to 0 (the placeholder value)
+            delete_node_by_data(&club.member_ids, student.id); // Deletes the student's ID from the club's member IDs
+            clubs[club_pos].member_count--;                    // Decrements the club's member count
 
-            for (int j = 0; j < meeting_count; j++)
+            for (int i = 0; i < meeting_count; i++)
             {
-                struct Meeting meeting = meetings[j];
-                bool is_absent = false;
-                for (int k = 0; k < meeting.absent_member_count; k++)
+                struct Meeting meeting = meetings[i];
+                if (meeting.club_id != club.id)
                 {
-                    if (meeting.absent_member_ids[k] == student.id)
-                    {
-                        is_absent = true;
-                        if (meeting.absent_member_count > k + 1) // If the student is not the last absent member of the meeting, shift the following absent members to the left
-                        {
-                            for (int l = k; l < meeting.absent_member_count - 1; l++)
-                            {
-                                meetings[j].absent_member_ids[l] = meeting.absent_member_ids[l + 1];
-                            }
-                        }
-                        break;
-                    }
-                }
-                if (is_absent)
-                {
-                    meetings[j].absent_member_ids[--meetings[j].absent_member_count] = 0; // Decrements the meeting's absent member count and sets the last absent member ID to 0 (the placeholder value)
                     continue;
                 }
-                for (int k = 0; k < meeting.present_member_count; k++)
+                int deleted_absentee = delete_node_by_data(&meetings[i].absent_member_ids, student.id); // Attempts to remove the student's ID from the absent record
+                if (deleted_absentee == 1)
                 {
-                    if (meeting.present_member_ids[k] == student.id)
-                    {
-                        if (meeting.present_member_count > k + 1) // If the student is not the last present member of the meeting, shift the following present members to the left
-                        {
-                            for (int l = k; l < meeting.present_member_count - 1; l++)
-                            {
-                                meetings[j].present_member_ids[l] = meeting.present_member_ids[l + 1];
-                            }
-                        }
-                        meetings[j].present_member_ids[--meetings[j].present_member_count] = 0; // Decrements the meeting's present member count and sets the last present member ID to 0 (the placeholder value)
-                        break;
-                    }
+                    meetings[i].absent_member_count--; // Decrements the meeting's absent member count
+                }
+                else
+                {
+                    meetings[i].present_member_count--;                               // Decrements the meeting's present member count
+                    delete_node_by_data(&meetings[i].present_member_ids, student.id); // Removes the student's ID from the present record
                 }
             }
 
-            for (int j = 0; j < club.student_rep_count; j++)
+            int deleted_student_rep = delete_node_by_data(&clubs[club_pos].student_rep_ids, student.id);
+            if (deleted_student_rep == 1)
             {
-                if (club.student_rep_ids[j] == student.id)
-                {
-                    if (club.student_rep_count > j + 1) // If the student is not the last student representative of the club, shift the following student representatives to the left
-                    {
-                        for (int k = j; k < club.student_rep_count - 1; k++)
-                        {
-                            clubs[club_pos].student_rep_ids[k] = clubs[club_pos].student_rep_ids[k + 1];
-                        }
-                    }
-                    break;
-                }
+                clubs[club_pos].student_rep_count--;
             }
-            clubs[club_pos].student_rep_ids[clubs[club_pos].student_rep_count--] = 0; // Decrements the club's student representative count and sets the last student representative ID to 0 (the placeholder value)
+
+            curr_club_membership = curr_club_membership->next;
         }
 
         if (student_count > student_pos + 1) // If the student is not the last student in the list, shift the following students to the left

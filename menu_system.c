@@ -55,38 +55,6 @@ void print_greeting()
     printf("\n\n");
 }
 
-// read_variable_length_input reads input from the user until the user presses [Enter] (indicated by a newline character).
-// It is used when the input is of an unknown/arbitrary length.
-char *read_variable_length_input()
-{
-    char *buffer = malloc(sizeof(char)); // Allocates an initial buffer with a size of 1 char
-    if (buffer == NULL)
-    {
-        report_alloc_error(sizeof(char));
-    }
-
-    size_t buffer_size = 0;     // Stores the current size of the buffer
-    size_t buffer_capacity = 1; // Stores the current capacity (max size) of the buffer
-    char input = '\0';
-    while ((input = getchar()) != '\n' && input != EOF) // Continues reading input until the user presses [Enter] (indicated by a newline character)
-    {
-        if (buffer_size + 1 >= buffer_capacity) // If buffer_size + 1 (corresponding to the size of the buffer after the character has been added) is greater than or equal to the capacity of the buffer
-        {
-            buffer_capacity += sizeof(char);           // Increments the capacity of the buffer
-            buffer = realloc(buffer, buffer_capacity); // Reallocates the buffer with the new size
-            if (buffer == NULL)
-            {
-                report_alloc_error(buffer_capacity);
-            }
-        }
-        buffer[buffer_size++] = input;
-    }
-    buffer[buffer_size] = '\0';
-
-    return buffer; // Returns the buffer containing the user's input
-    // The buffer (dynamically allocated memory) must be manually freed by the caller of this function to prevent memory overflow.
-}
-
 void show_main_menu()
 {
     char choice = '\0';
@@ -291,7 +259,9 @@ void print_table(int total_columns, int total_rows, int *column_widths, int tota
 // parse_time_input reads a date and time input from the user in the format "DD/MM/YYYY HH:MM" and converts it to a time_t timestamp.
 time_t parse_time_input()
 {
-    char *unparsed_time = read_variable_length_input();
+    char unparsed_time[128];
+    fgets(unparsed_time, sizeof(unparsed_time), stdin);
+    unparsed_time[strcspn(unparsed_time, "\n")] = '\0';
     if (!unparsed_time)
     {
         return (time_t)-1;
@@ -299,7 +269,6 @@ time_t parse_time_input()
 
     struct tm tm = {0};
     int matched = sscanf(unparsed_time, "%d/%d/%d %d:%d", &tm.tm_mday, &tm.tm_mon, &tm.tm_year, &tm.tm_hour, &tm.tm_min); // sscanf reads the input string and assigns the values to the tm struct
-    free(unparsed_time);
     if (matched != 5)
     {
         return (time_t)-1;

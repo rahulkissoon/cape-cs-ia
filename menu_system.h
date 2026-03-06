@@ -2,7 +2,6 @@
 #define MENU_SYSTEM_H_INCLUDED
 void clear_console();
 void print_greeting();
-char *read_variable_length_input();
 void show_main_menu();
 void show_admin_panel();
 void prompt_return(char *to);

@@ -61,15 +61,12 @@ void save_data_to_file()
         struct Club club = clubs[i];
 
         // Prevent writing pointers to the files
-        char *club_password = club.password;
         struct Node *curr_member_id = club.member_ids;
         struct Node *curr_student_rep_id = club.student_rep_ids;
-        club.password = NULL;
         club.member_ids = NULL;
         club.student_rep_ids = NULL;
 
         fwrite(&club, sizeof(struct Club), 1, clubs_datafile_ptr);
-        fwrite(club_password, sizeof(char), clubs[i].password_length, clubs_datafile_ptr);
 
         while (curr_member_id != NULL)
         {
@@ -159,7 +156,6 @@ void load_data_from_file()
 
         int admin_password_length = 0;
         fread(&admin_password_length, sizeof(int), 1, core_datafile_ptr);
-        admin_password = malloc(admin_password_length * sizeof(char)); // Allocates enough memory based on the length of the admin password
         fread(admin_password, sizeof(char), admin_password_length, core_datafile_ptr);
     }
 
@@ -171,8 +167,6 @@ void load_data_from_file()
         {
             struct Club *club = &clubs[i];
             fread(club, sizeof(struct Club), 1, clubs_datafile_ptr);
-            club->password = malloc(clubs[i].password_length * sizeof(char)); // Allocates enough memory based on the length of the club password
-            fread(club->password, sizeof(char), club->password_length, clubs_datafile_ptr);
 
             club->member_ids = NULL;
             for (int j = 0; j < club->member_count; j++)
@@ -280,10 +274,10 @@ void first_time_setup()
         print_greeting();
         printf("You must set an administrator password which contains at least 8 characters. You can change your password after setting it later.\n\n");
         printf("Set Administrator Password: ");
-        admin_password = read_variable_length_input();
+        fgets(admin_password, MAX_PASSWORD_LENGTH, stdin);
+        admin_password[strcspn(admin_password, "\n")] = '\0';
         if (strlen(admin_password) < MIN_PASSWORD_LENGTH)
         {
-            free(admin_password);
             continue;
         }
 
@@ -297,15 +291,11 @@ void first_time_setup()
         printf("\n");
 
         printf("Confirm Administrator Password: ");
-        char *admin_password_confirmation = read_variable_length_input();
-        if (strcmp(admin_password, admin_password_confirmation) != 0)
+        char admin_password_confirmation[MAX_PASSWORD_LENGTH];
+        fgets(admin_password_confirmation, MAX_PASSWORD_LENGTH, stdin);
+        admin_password_confirmation[strcspn(admin_password_confirmation, "\n")] = '\0';
+        if (strcmp(admin_password, admin_password_confirmation) == 0)
         {
-            free(admin_password);
-            free(admin_password_confirmation);
-        }
-        else
-        {
-            free(admin_password_confirmation);
             break;
         }
     }
@@ -319,12 +309,13 @@ void first_time_setup()
         print_greeting();
         printf("Please enter the name of your school. (Max %d characters)\n\n", MAX_SCHOOL_NAME_LENGTH);
 
-        char *chosen_school_name = read_variable_length_input();
+        char chosen_school_name[MAX_SCHOOL_NAME_LENGTH];
+        fgets(chosen_school_name, MAX_SCHOOL_NAME_LENGTH, stdin);
+        chosen_school_name[strcspn(chosen_school_name, "\n")] = '\0';
         if (strlen(chosen_school_name) > 0 && strlen(chosen_school_name) <= MAX_SCHOOL_NAME_LENGTH)
         {
             strcpy(school_name, chosen_school_name);
         }
-        free(chosen_school_name);
     }
 
     print_greeting();
@@ -344,15 +335,15 @@ void change_school_name()
     {
         print_greeting();
         printf("Please enter the new name of your school. (Max %d characters)\n\n", MAX_SCHOOL_NAME_LENGTH);
-        char *new_school_name = read_variable_length_input();
+        char new_school_name[MAX_SCHOOL_NAME_LENGTH];
+        fgets(new_school_name, MAX_SCHOOL_NAME_LENGTH, stdin);
+        new_school_name[strcspn(new_school_name, "\n")] = '\0';
         if (strlen(new_school_name) > 0 && strlen(new_school_name) <= MAX_SCHOOL_NAME_LENGTH)
         {
             strcpy(school_name, new_school_name);
             save_data_to_file();
-            free(new_school_name);
             break;
         }
-        free(new_school_name);
     }
 
     print_greeting();

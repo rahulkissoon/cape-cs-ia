@@ -5,8 +5,9 @@
 #ifndef AUTH_H_INCLUDED
 #define AUTH_H_INCLUDED
 #define MIN_PASSWORD_LENGTH 8
+#define MAX_PASSWORD_LENGTH 128
 
-extern char *admin_password;
+extern char admin_password[MAX_PASSWORD_LENGTH];
 
 enum AuthorizationLevel
 {

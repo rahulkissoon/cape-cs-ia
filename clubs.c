@@ -46,10 +46,11 @@ void manage_clubs()
             }
             printf("\n");
 
-            char *club_lookup_query = read_variable_length_input();
+            char club_lookup_query[128];
+            fgets(club_lookup_query, sizeof(club_lookup_query), stdin);
+            club_lookup_query[strcspn(club_lookup_query, "\n")] = '\0';
             if (strcmp(club_lookup_query, "") == 0) // If the user enters nothing, break the loop.
             {
-                free(club_lookup_query);
                 break;
             }
 
@@ -79,8 +80,6 @@ void manage_clubs()
                     break;
                 }
             }
-
-            free(club_lookup_query);
         }
         if (club_pos == -1) // Breaks the loop if the club position has been set (which happens when the user enters nothing)
         {
@@ -173,9 +172,10 @@ void register_club()
         print_greeting();
         printf("REGISTER NEW CLUB\n\n");
         printf("> Name (max %d characters): ", MAX_CLUB_NAME_LENGTH);
-        char *club_name = read_variable_length_input();
+        char club_name[MAX_CLUB_NAME_LENGTH];
+        fgets(club_name, MAX_CLUB_NAME_LENGTH, stdin);
+        club_name[strcspn(club_name, "\n")] = '\0';
         strcpy(club.name, club_name);
-        free(club_name);
         if (strlen(club.name) > 0) // The club name must be at least 1 character long
         {
             break;
@@ -224,9 +224,10 @@ void register_club()
         printf("> Name: %s\n", club.name);
         printf("> Weekly Meeting Day: %s\n", club.weekly_meeting_day);
         printf("> Description (max %d characters): ", MAX_CLUB_DESCRIPTION_LENGTH);
-        char *club_description = read_variable_length_input();
+        char club_description[MAX_CLUB_DESCRIPTION_LENGTH];
+        fgets(club_description, MAX_CLUB_DESCRIPTION_LENGTH, stdin);
+        club_description[strcspn(club_description, "\n")] = '\0';
         strcpy(club.description, club_description);
-        free(club_description);
         if (strlen(club.description) > 0 && strlen(club.description) <= MAX_CLUB_DESCRIPTION_LENGTH) // The club description must be at least 1 character long
         {
             break;
@@ -244,7 +245,9 @@ void register_club()
         printf("> Description: %s\n", club.description);
         printf("> Student Representatives' IDs (comma-separated): ");
 
-        char *student_rep_ids = read_variable_length_input();
+        char student_rep_ids[1024];
+        fgets(student_rep_ids, sizeof(student_rep_ids), stdin);
+        student_rep_ids[strcspn(student_rep_ids, "\n")] = '\0';
         if (strcmp(student_rep_ids, "") != 0) // Parses the input only if input was given
         {
             char *student_rep_id = strtok(student_rep_ids, ", ");                                // Splits the user input by a comma delimiter
@@ -292,7 +295,6 @@ void register_club()
                 break;
             }
         }
-        free(student_rep_ids); // Since student_rep_ids was dynamically allocated, the memory must be freed once no longer in use.
     }
 
     while (true)
@@ -305,10 +307,11 @@ void register_club()
         printf("> Student Representatives: %s\n", student_reps);
 
         printf("> Password (min %d characters): ", MIN_PASSWORD_LENGTH);
-        char *password = read_variable_length_input(); // A password can be of any (unknown) length, so the read_variable_length_input function is used.
-        if (strlen(password) < MIN_PASSWORD_LENGTH)    // Ensures that the password meets the minimum criterion for security
+        char password[MAX_PASSWORD_LENGTH];
+        fgets(password, MAX_PASSWORD_LENGTH, stdin);
+        password[strcspn(password, "\n")] = '\0';
+        if (strlen(password) < MIN_PASSWORD_LENGTH) // Ensures that the password meets the minimum criterion for security
         {
-            free(password); // read_variable_length_input() returns a pointer to dynamically-allocated memory
             continue;
         }
 
@@ -326,23 +329,15 @@ void register_club()
         }
         printf("\n");
         printf("> Confirm Password: ");
-        char *password_confirmation = read_variable_length_input();
+        char password_confirmation[MAX_PASSWORD_LENGTH];
+        fgets(password_confirmation, MAX_PASSWORD_LENGTH, stdin);
+        password_confirmation[strcspn(password_confirmation, "\n")] = '\0';
         if (strcmp(password, password_confirmation) == 0) // Checks to see if the password confirmation matches the original password
         {
-            club.password_length = strlen(password) + 1;                 // strlen does not account for the null terminator '\0'.
-            club.password = malloc(club.password_length * sizeof(char)); // Allocates the necessary memory since the password is of arbitrary length
             strcpy(club.password, password);
-            free(password);
-            free(password_confirmation);
-            password = NULL;
-            password_confirmation = NULL;
             break;
         }
         // Otherwise, if the password does not match, the process restarts.
-        free(password);
-        free(password_confirmation);
-        password = NULL;
-        password_confirmation = NULL;
     }
 
     print_greeting();
@@ -352,8 +347,12 @@ void register_club()
     printf("> Description: %s\n", club.description);
     printf("> Student Representatives: %s\n", student_reps);
     printf("> Password: ");
-    for (int i = 0; i < club.password_length; i++)
+    for (int i = 0; i < MAX_PASSWORD_LENGTH; i++)
     {
+        if (club.password[i] == '\0')
+        {
+            break;
+        }
         printf("*");
     }
     printf("\n\n");
@@ -623,10 +622,11 @@ void enroll_new_member(struct Club club, int club_pos)
         printf("ENROLL NEW MEMBER TO CLUB '%s'\n\n", club.name);
         printf("Type in the full name or ID of the student you wish to enroll to the club '%s' and then press [Enter]. Otherwise, leave the field blank and press [Enter] to return to the club menu.\n\n", club.name);
 
-        char *student_lookup_query = read_variable_length_input();
+        char student_lookup_query[1024];
+        fgets(student_lookup_query, sizeof(student_lookup_query), stdin);
+        student_lookup_query[strcspn(student_lookup_query, "\n")] = '\0';
         if (strcmp(student_lookup_query, "") == 0)
         {
-            free(student_lookup_query);
             break;
         }
 
@@ -656,8 +656,6 @@ void enroll_new_member(struct Club club, int club_pos)
                 break;
             }
         }
-
-        free(student_lookup_query);
     }
     if (student_pos == -1)
     {
@@ -715,7 +713,9 @@ void rescind_membership(struct Club club, int club_pos)
         printf("RESCIND MEMBERSHIP FROM CLUB '%s'\n\n", club.name);
         printf("Type in the full name or ID of the student whose membership of '%s' you wish to rescind and then press [Enter]. Otherwise, leave the field blank and press [Enter] to return to the club menu.\n\n", club.name);
 
-        char *student_lookup_query = read_variable_length_input();
+        char student_lookup_query[1024];
+        fgets(student_lookup_query, sizeof(student_lookup_query), stdin);
+        student_lookup_query[strcspn(student_lookup_query, "\n")] = '\0';
         if (strcmp(student_lookup_query, "") == 0)
         {
             break;
@@ -744,10 +744,8 @@ void rescind_membership(struct Club club, int club_pos)
             {
                 student = students[i];
                 student_pos = i;
-                free(student_lookup_query);
                 break;
             }
-            free(student_lookup_query);
         }
     }
     if (student_pos == -1)
@@ -817,13 +815,14 @@ void update_club_info(struct Club club, int club_pos)
             char old_name[MAX_CLUB_NAME_LENGTH] = "";
             while (true)
             {
-                char *new_name = read_variable_length_input();
+                char new_name[MAX_CLUB_NAME_LENGTH];
+                fgets(new_name, MAX_CLUB_NAME_LENGTH, stdin);
+                new_name[strcspn(new_name, "\n")] = '\0';
                 if (strlen(new_name) > 0 && strlen(new_name) <= MAX_CLUB_NAME_LENGTH)
                 {
                     strcpy(old_name, club.name);
                     strcpy(clubs[club_pos].name, new_name);
                     save_data_to_file();
-                    free(new_name);
                     break;
                 }
             }
@@ -877,15 +876,15 @@ void update_club_info(struct Club club, int club_pos)
             printf("After typing the new description for '%s' (max %d characters), press [Enter] to confirm.\n\n", club.name, MAX_CLUB_DESCRIPTION_LENGTH);
             while (true)
             {
-                char *new_description = read_variable_length_input();
+                char new_description[MAX_CLUB_DESCRIPTION_LENGTH];
+                fgets(new_description, MAX_CLUB_DESCRIPTION_LENGTH, stdin);
+                new_description[strcspn(new_description, "\n")] = '\0';
                 if (strlen(new_description) > 0 && strlen(new_description) <= MAX_CLUB_DESCRIPTION_LENGTH)
                 {
                     strcpy(clubs[club_pos].description, new_description);
-                    free(new_description);
                     save_data_to_file();
                     break;
                 }
-                free(new_description); // Frees old pointer to new_description
             }
             print_greeting();
             printf("Successfully updated the description of '%s'. ", club.name);
@@ -932,7 +931,9 @@ void update_club_info(struct Club club, int club_pos)
                 print_greeting();
                 printf("Enter a comma-separated list of the IDs of the new student representatives for '%s' below. To confirm your choice, press [Enter].\n\n", club.name);
 
-                char *student_rep_ids = read_variable_length_input();
+                char student_rep_ids[1024];
+                fgets(student_rep_ids, sizeof(student_rep_ids), stdin);
+                student_rep_ids[strcspn(student_rep_ids, "\n")] = '\0';
                 if (strcmp(student_rep_ids, "") != 0)
                 {
                     char *student_rep_id = strtok(student_rep_ids, ", ");
@@ -988,7 +989,6 @@ void update_club_info(struct Club club, int club_pos)
                         break;
                     }
                 }
-                free(student_rep_ids);
             }
 
             clubs[club_pos] = club;
@@ -1003,11 +1003,11 @@ void update_club_info(struct Club club, int club_pos)
                 print_greeting();
                 printf("Enter the new password for club '%s' below. It must contain at least %d characters.\n\n", club.name, MIN_PASSWORD_LENGTH);
                 printf("Password: ");
-                char *password = read_variable_length_input();
+                char password[MAX_PASSWORD_LENGTH];
+                fgets(password, MAX_PASSWORD_LENGTH, stdin);
+                password[strcspn(password, "\n")] = '\0';
                 if (strlen(password) < MIN_PASSWORD_LENGTH)
                 {
-                    free(password);
-                    password = NULL;
                     continue;
                 }
 
@@ -1020,24 +1020,15 @@ void update_club_info(struct Club club, int club_pos)
                 }
                 printf("\n");
                 printf("Confirm Password: ");
-                char *password_confirmation = read_variable_length_input();
+                char password_confirmation[MAX_PASSWORD_LENGTH];
+                fgets(password_confirmation, MAX_PASSWORD_LENGTH, stdin);
+                password_confirmation[strcspn(password_confirmation, "\n")] = '\0';
                 if (strcmp(password, password_confirmation) == 0)
                 {
-                    clubs[club_pos].password_length = strlen(password) + 1;
-                    free(clubs[club_pos].password);
-                    clubs[club_pos].password = malloc(clubs[club_pos].password_length * sizeof(char));
                     strcpy(clubs[club_pos].password, password);
                     save_data_to_file();
-                    free(password);
-                    free(password_confirmation);
-                    password = NULL;
-                    password_confirmation = NULL;
                     break;
                 }
-                free(password);
-                free(password_confirmation);
-                password = NULL;
-                password_confirmation = NULL;
             }
 
             print_greeting();
@@ -1156,16 +1147,16 @@ void post_meeting(struct Club club, int club_pos)
         print_greeting();
         printf("POST MEETING FOR CLUB '%s'\n\n", club.name);
         printf("> Meeting Topic (max %d characters): ", MAX_MEETING_TOPIC_LENGTH);
-        char *meeting_topic = read_variable_length_input();
+        char meeting_topic[MAX_MEETING_TOPIC_LENGTH];
+        fgets(meeting_topic, MAX_MEETING_TOPIC_LENGTH, stdin);
+        meeting_topic[strcspn(meeting_topic, "\n")] = '\0';
         strcpy(meeting.topic, meeting_topic);
 
         int meeting_topic_length = strlen(meeting.topic);
         if (meeting_topic_length > 0 && meeting_topic_length <= 40)
         {
-            free(meeting_topic);
             break;
         }
-        free(meeting_topic);
     }
 
     while (true)
@@ -1547,10 +1538,11 @@ void list_club_meetings(int club_pos)
         int meeting_pos = -1;
         while (meeting.id == 0)
         {
-            char *meeting_lookup_query = read_variable_length_input();
+            char meeting_lookup_query[1024];
+            fgets(meeting_lookup_query, sizeof(meeting_lookup_query), stdin);
+            meeting_lookup_query[strcspn(meeting_lookup_query, "\n")] = '\0';
             if (strcmp(meeting_lookup_query, "") == 0)
             {
-                free(meeting_lookup_query);
                 break;
             }
 
@@ -1568,7 +1560,6 @@ void list_club_meetings(int club_pos)
                     break;
                 }
             }
-            free(meeting_lookup_query);
         }
         if (meeting_pos == -1)
         {

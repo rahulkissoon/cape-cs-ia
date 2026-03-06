@@ -219,14 +219,14 @@ void record_transaction(struct Club club, int club_pos)
         print_greeting();
         printf("RECORD FINANCIAL TRANSACTION FOR CLUB '%s'\n\n", club.name);
         printf("> Particulars (max %d characters): ", MAX_PARTICULARS_LENGTH);
-        char *transaction_particulars = read_variable_length_input(); // Accepts a fixed-length input for the particulars of the transaction
+        char transaction_particulars[MAX_PARTICULARS_LENGTH];
+        fgets(transaction_particulars, sizeof(transaction_particulars), stdin); // Accepts a fixed-length input for the particulars of the transaction
+        transaction_particulars[strcspn(transaction_particulars, "\n")] = '\0';
         strcpy(transaction.particulars, transaction_particulars);
         if (strlen(transaction.particulars) > 0 && strlen(transaction.particulars) <= MAX_PARTICULARS_LENGTH)
         {
-            free(transaction_particulars);
             break; // If the user has input a non-zero-length string for the particulars, continue.
         }
-        free(transaction_particulars);
     }
 
     struct Transaction prev_transaction = {0};

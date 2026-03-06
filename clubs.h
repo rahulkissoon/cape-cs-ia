@@ -1,4 +1,5 @@
 #include <time.h>
+#include "auth.h"
 #include "students.h"
 #include "core.h"
 
@@ -36,8 +37,7 @@ struct Club
     struct Node *member_ids;
     int member_count;
     char weekly_meeting_day[MAX_WEEKLY_MEETING_DAY_LENGTH];
-    char *password;
-    int password_length;
+    char password[MAX_PASSWORD_LENGTH];
     time_t registered_at;
     int meeting_count;
     int prev_meeting_id;

@@ -7,7 +7,7 @@
 #include "core.h"
 #include "menu_system.h"
 
-char *admin_password = NULL;
+char admin_password[MAX_PASSWORD_LENGTH];
 
 // prompt_authorization asks the user to input a password and compares it against the correct password.
 // If the inputted password matches the correct password, return true to the caller. Otherwise, prompt the user to return to the specified menu and return false to the caller.
@@ -16,7 +16,9 @@ bool prompt_authorization(char *action_name, char *password, enum AuthorizationL
     print_greeting();
     printf("%s requires %sauthorization. Enter your password below to authenticate your identity.\n\n", action_name, authorization_level == ADMIN ? "administrator " : "");
 
-    char *inputted_password = read_variable_length_input();
+    char inputted_password[MAX_PASSWORD_LENGTH];
+    fgets(inputted_password, MAX_PASSWORD_LENGTH, stdin);
+    inputted_password[strcspn(inputted_password, "\n")] = '\0';
     bool is_authorized = false;
     if (strcmp(inputted_password, admin_password) == 0)
     {
@@ -29,8 +31,6 @@ bool prompt_authorization(char *action_name, char *password, enum AuthorizationL
             is_authorized = true;
         }
     }
-    free(inputted_password);
-    inputted_password = NULL;
 
     if (!is_authorized)
     {
@@ -49,11 +49,11 @@ void change_admin_password()
         print_greeting();
         printf("Enter the new administrator password below. It must contain at least 8 characters.\n\n");
         printf("Password: ");
-        char *password = read_variable_length_input();
+        char password[MAX_PASSWORD_LENGTH];
+        fgets(password, MAX_PASSWORD_LENGTH, stdin);
+        password[strcspn(password, "\n")] = '\0';
         if (strlen(password) < MIN_PASSWORD_LENGTH)
         {
-            free(password);
-            password = NULL;
             continue;
         }
 
@@ -66,21 +66,15 @@ void change_admin_password()
         }
         printf("\n");
         printf("Confirm Password: ");
-        char *password_confirmation = read_variable_length_input();
+        char password_confirmation[MAX_PASSWORD_LENGTH];
+        fgets(password_confirmation, MAX_PASSWORD_LENGTH, stdin);
+        password_confirmation[strcspn(password_confirmation, "\n")] = '\0';
         if (strcmp(password, password_confirmation) == 0)
         {
             strcpy(admin_password, password); // Updates the global variable admin_password to the new password
             save_data_to_file();
-            free(password);
-            free(password_confirmation);
-            password = NULL;
-            password_confirmation = NULL;
             break;
         }
-        free(password);
-        free(password_confirmation);
-        password = NULL;
-        password_confirmation = NULL;
     }
 
     print_greeting();

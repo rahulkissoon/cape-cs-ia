@@ -45,10 +45,11 @@ void manage_students()
             }
             printf("\n");
 
-            char *student_lookup_query = read_variable_length_input();
+            char student_lookup_query[2048];
+            fgets(student_lookup_query, sizeof(student_lookup_query), stdin);
+            student_lookup_query[strcspn(student_lookup_query, "\n")] = '\0';
             if (strcmp(student_lookup_query, "") == 0) // Exits if nothing was entered
             {
-                free(student_lookup_query);
                 break;
             }
 
@@ -78,7 +79,6 @@ void manage_students()
                     break;
                 }
             }
-            free(student_lookup_query);
         }
         if (student_pos == -1) // If student_pos is still -1 (implying that the user chose to exit), the loop is broken.
         {
@@ -190,16 +190,16 @@ void update_student_info(struct Student student, int student_pos)
             char old_name[MAX_STUDENT_NAME_LENGTH] = "";
             while (true)
             {
-                char *new_name = read_variable_length_input();
+                char new_name[MAX_STUDENT_NAME_LENGTH];
+                fgets(new_name, MAX_STUDENT_NAME_LENGTH, stdin);
+                new_name[strcspn(new_name, "\n")] = '\0';
                 if (strlen(new_name) > 0 && strlen(new_name) <= MAX_STUDENT_NAME_LENGTH)
                 {
                     strcpy(old_name, student.name);
                     strcpy(students[student_pos].name, new_name);
                     save_data_to_file();
-                    free(new_name);
                     break;
                 }
-                free(new_name); // Frees the old pointer to new_name
             }
             print_greeting();
             printf("Successfully updated the name of %s (previously '%s'). ", students[student_pos].name, old_name);
@@ -212,16 +212,16 @@ void update_student_info(struct Student student, int student_pos)
             char old_class[MAX_CLASS_NAME_LENGTH] = "";
             while (true)
             {
-                char *new_class = read_variable_length_input();
+                char new_class[MAX_CLASS_NAME_LENGTH];
+                fgets(new_class, MAX_CLASS_NAME_LENGTH, stdin);
+                new_class[strcspn(new_class, "\n")] = '\0';
                 if (strlen(new_class) > 0 && strlen(new_class) <= MAX_CLASS_NAME_LENGTH)
                 {
                     strcpy(old_class, student.class);
                     strcpy(students[student_pos].class, new_class);
                     save_data_to_file();
-                    free(new_class);
                     break;
                 }
-                free(new_class); // Frees the old pointer to new_class
             }
             print_greeting();
             printf("Successfully updated the %s's class to %s (previously '%s'). ", student.name, students[student_pos].class, old_class);
@@ -234,16 +234,16 @@ void update_student_info(struct Student student, int student_pos)
             char old_email_address[MAX_EMAIL_ADDRESS_LENGTH] = "";
             while (true)
             {
-                char *new_email_address = read_variable_length_input();
+                char new_email_address[MAX_EMAIL_ADDRESS_LENGTH];
+                fgets(new_email_address, MAX_EMAIL_ADDRESS_LENGTH, stdin);
+                new_email_address[strcspn(new_email_address, "\n")] = '\0';
                 if (strlen(new_email_address) > 0 && strlen(new_email_address) <= MAX_EMAIL_ADDRESS_LENGTH)
                 {
                     strcpy(old_email_address, student.email_address);
                     strcpy(students[student_pos].email_address, new_email_address);
                     save_data_to_file();
-                    free(new_email_address);
                     break;
                 }
-                free(new_email_address); // Frees the old pointer to new_email_address
             }
             print_greeting();
             printf("Successfully updated the %s's email address to %s (previously %s). ", student.name, students[student_pos].email_address, old_email_address);
@@ -267,9 +267,10 @@ void register_student()
         print_greeting();
         printf("REGISTER NEW STUDENT\n\n");
         printf("Name (max %d characters): ", MAX_STUDENT_NAME_LENGTH);
-        char *student_name = read_variable_length_input();
+        char student_name[MAX_STUDENT_NAME_LENGTH];
+        fgets(student_name, MAX_STUDENT_NAME_LENGTH, stdin);
+        student_name[strcspn(student_name, "\n")] = '\0';
         strcpy(student.name, student_name);
-        free(student_name);
         if (strlen(student.name) > 0 && strlen(student.name) <= MAX_STUDENT_NAME_LENGTH) // If the student's name is not empty, break out of the loop.
         {
             break;
@@ -281,10 +282,10 @@ void register_student()
         printf("REGISTER NEW STUDENT\n\n");
         printf("Name: %s\n", student.name);
         printf("Class (max %d characters): ", MAX_CLASS_NAME_LENGTH);
-
-        char *student_class = read_variable_length_input();
+        char student_class[MAX_CLASS_NAME_LENGTH];
+        fgets(student_class, MAX_CLASS_NAME_LENGTH, stdin);
+        student_class[strcspn(student_class, "\n")] = '\0';
         strcpy(student.class, student_class);
-        free(student_class);
         if (strlen(student.class) > 0 && strlen(student.class) <= MAX_CLASS_NAME_LENGTH) // If the student's class is not empty, break out of the loop.
         {
             break;
@@ -297,10 +298,10 @@ void register_student()
         printf("Name: %s\n", student.name);
         printf("Class: %s\n", student.class);
         printf("Email Address (max %d characters): ", MAX_EMAIL_ADDRESS_LENGTH);
-
-        char *student_email_address = read_variable_length_input();
+        char student_email_address[MAX_EMAIL_ADDRESS_LENGTH];
+        fgets(student_email_address, MAX_EMAIL_ADDRESS_LENGTH, stdin);
+        student_email_address[strcspn(student_email_address, "\n")] = '\0';
         strcpy(student.email_address, student_email_address);
-        free(student_email_address);
         if (strlen(student.email_address) > 0 && strlen(student.email_address) <= MAX_EMAIL_ADDRESS_LENGTH) // If the student's email address is not empty and satisfies the maximum length condition, break out of the loop.
         {
             break;

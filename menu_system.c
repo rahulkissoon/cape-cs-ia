@@ -70,12 +70,16 @@ void show_main_menu()
         switch (choice)
         {
         case '1':
+        {
             manage_clubs();
             break;
+        }
 
         case '2':
+        {
             show_admin_panel();
             break;
+        }
         }
     }
 
@@ -107,20 +111,30 @@ void show_admin_panel()
         switch (choice)
         {
         case '1':
+        {
             register_club();
             break;
+        }
         case '2':
+        {
             register_student();
             break;
+        }
         case '3':
+        {
             manage_students();
             break;
+        }
         case '4':
+        {
             change_admin_password();
             break;
+        }
         case '5':
+        {
             change_school_name();
             break;
+        }
         }
     }
 }

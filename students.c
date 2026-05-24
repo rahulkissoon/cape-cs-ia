@@ -102,20 +102,26 @@ void manage_students()
             switch (choice)
             {
             case '1':
+            {
                 view_student_info(student);
                 break;
+            }
 
             case '2':
+            {
                 update_student_info(student, student_pos);
                 break;
+            }
 
             case '3':
+            {
                 delete_student(student, student_pos);
                 if (students[student_pos].id != student.id) // If the ID of the student at the same position has changed, the student has been deleted.
                 {
                     choice = 'r';
                 }
                 break;
+            }
             }
         }
     }
@@ -184,6 +190,7 @@ void update_student_info(struct Student student, int student_pos)
         switch (choice)
         {
         case '1': // Updates the student's name
+        {
             print_greeting();
 
             printf("After typing the new name for %s (max %d characters), press [Enter] to confirm.\n\n", student.name, MAX_STUDENT_NAME_LENGTH);
@@ -204,8 +211,10 @@ void update_student_info(struct Student student, int student_pos)
             print_greeting();
             printf("Successfully updated the name of %s (previously '%s'). ", students[student_pos].name, old_name);
             break;
+        }
 
         case '2': // Updates the student's class
+        {
             print_greeting();
 
             printf("After typing the new class for %s (max %d characters), press [Enter] to confirm.\n\n", student.name, MAX_CLASS_NAME_LENGTH);
@@ -226,8 +235,10 @@ void update_student_info(struct Student student, int student_pos)
             print_greeting();
             printf("Successfully updated the %s's class to %s (previously '%s'). ", student.name, students[student_pos].class, old_class);
             break;
+        }
 
         case '3': // Updates the student's email address
+        {
             print_greeting();
 
             printf("After typing the new email address for %s (max %d characters), press [Enter] to confirm.\n\n", student.name, MAX_EMAIL_ADDRESS_LENGTH);
@@ -248,6 +259,7 @@ void update_student_info(struct Student student, int student_pos)
             print_greeting();
             printf("Successfully updated the %s's email address to %s (previously %s). ", student.name, students[student_pos].email_address, old_email_address);
             break;
+        }
         }
 
         if (choice == '1' || choice == '2' || choice == '3') // If the user entered a valid choice, prompt them to return to the student menu.

@@ -129,6 +129,7 @@ void view_club_ledger(int club_pos)
                     switch (j) // Formats the cell contents based on the type of data (indicated by j, that is the column)
                     {
                     case 0:
+                    {
                         int transaction_id_length = snprintf(NULL, 0, "%d", transaction.id);
                         char *stringified_transaction_id = malloc((transaction_id_length + 1) * sizeof(char)); // The transaction ID length is variable, so a fixed-size array cannot be declared.
                         if (stringified_transaction_id == NULL)
@@ -139,16 +140,22 @@ void view_club_ledger(int club_pos)
                         strcpy(contents[i][j], stringified_transaction_id);
                         free(stringified_transaction_id);
                         break;
+                    }
 
                     case 1:
+                    {
                         strcpy(contents[i][j], format_time_t(transaction.time));
                         break;
+                    }
 
                     case 2:
+                    {
                         strcpy(contents[i][j], transaction.particulars);
                         break;
+                    }
 
                     case 3:
+                    {
                         int transaction_amount_length = snprintf(NULL, 0, "%.2lf", transaction.amount);
                         char *stringified_transaction_amount = malloc((transaction_amount_length + 1) * sizeof(char)); // The transaction amount length is variable, so a fixed-size array cannot be declared.
                         if (stringified_transaction_amount == NULL)
@@ -159,8 +166,10 @@ void view_club_ledger(int club_pos)
                         strcpy(contents[i][j], stringified_transaction_amount);
                         free(stringified_transaction_amount);
                         break;
+                    }
 
                     case 4:
+                    {
                         if (transaction.type == CREDIT)
                         {
                             strcpy(contents[i][j], "Credit");
@@ -170,6 +179,7 @@ void view_club_ledger(int club_pos)
                             strcpy(contents[i][j], "Debit");
                         }
                         break;
+                    }
                     }
                 }
             }
@@ -271,11 +281,15 @@ void record_transaction(struct Club club, int club_pos)
         switch (transaction_type)
         {
         case '1':
+        {
             transaction.type = DEBIT;
             break;
+        }
         case '2':
+        {
             transaction.type = CREDIT;
             break;
+        }
         }
         if (transaction_type == '1' || transaction_type == '2')
         {

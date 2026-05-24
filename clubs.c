@@ -113,36 +113,50 @@ void manage_clubs()
             switch (choice)
             {
             case '1':
+            {
                 view_club_info(club);
                 break;
+            }
 
             case '2':
+            {
                 manage_club_members(club_pos);
                 break;
+            }
 
             case '3':
+            {
                 update_club_info(club, club_pos);
                 break;
+            }
 
             case '4':
+            {
                 post_meeting(club, club_pos);
                 break;
+            }
 
             case '5':
+            {
                 list_club_meetings(club_pos);
                 break;
+            }
 
             case '6':
+            {
                 view_club_ledger(club_pos);
                 break;
+            }
 
             case '7':
+            {
                 delete_club(club, club_pos);
                 if (clubs[club_pos].id != club.id) // If the ID of the club at the same position has changed, the club has been deleted.
                 {
                     choice = 'r';
                 }
                 break;
+            }
             }
         }
     }
@@ -200,20 +214,30 @@ void register_club()
         switch (weekly_meeting_day)
         {
         case '1':
+        {
             strcpy(club.weekly_meeting_day, "Monday");
             break;
+        }
         case '2':
+        {
             strcpy(club.weekly_meeting_day, "Tuesday");
             break;
+        }
         case '3':
+        {
             strcpy(club.weekly_meeting_day, "Wednesday");
             break;
+        }
         case '4':
+        {
             strcpy(club.weekly_meeting_day, "Thursday");
             break;
+        }
         case '5':
+        {
             strcpy(club.weekly_meeting_day, "Friday");
             break;
+        }
         }
     }
 
@@ -543,6 +567,7 @@ void manage_club_members(int club_pos)
                 switch (j) // Formats the cell contents based on the type of data (indicated by j, that is the column)
                 {
                 case 0:
+                {
                     int student_id_length = snprintf(NULL, 0, "%d", student.id);
                     char *stringified_student_id = malloc((student_id_length + 1) * sizeof(char)); // The student ID length is variable, so a fixed-size array cannot be declared.
                     if (stringified_student_id == NULL)
@@ -553,18 +578,25 @@ void manage_club_members(int club_pos)
                     strcpy(contents[i][j], stringified_student_id);
                     free(stringified_student_id);
                     break;
+                }
 
                 case 1:
+                {
                     strcpy(contents[i][j], student.name);
                     break;
+                }
 
                 case 2:
+                {
                     strcpy(contents[i][j], student.class);
                     break;
+                }
 
                 case 3:
+                {
                     strcpy(contents[i][j], student.email_address);
                     break;
+                }
                 }
             }
         }
@@ -600,12 +632,15 @@ void manage_club_members(int club_pos)
         switch (choice)
         {
         case 'e':
+        {
             enroll_new_member(club, club_pos);
             break;
-
+        }
         case 'u':
+        {
             rescind_membership(club, club_pos);
             break;
+        }
         }
     }
 }
@@ -809,6 +844,7 @@ void update_club_info(struct Club club, int club_pos)
         switch (choice)
         {
         case '1':
+        {
             print_greeting();
 
             printf("After typing the new name for '%s' (max %d characters), press [Enter] to confirm.\n\n", club.name, MAX_CLUB_NAME_LENGTH);
@@ -829,8 +865,10 @@ void update_club_info(struct Club club, int club_pos)
             print_greeting();
             printf("Successfully updated the name of '%s' (previously '%s'). ", clubs[club_pos].name, old_name);
             break;
+        }
 
         case '2':
+        {
             print_greeting();
 
             printf("Choose a number corresponding to the desired weekday from the list presented below to update the weekly meeting day of '%s'.\n", club.name);
@@ -848,20 +886,30 @@ void update_club_info(struct Club club, int club_pos)
                 switch (new_weekly_meeting_day)
                 {
                 case '1':
+                {
                     strcpy(club.weekly_meeting_day, "Monday");
                     break;
+                }
                 case '2':
+                {
                     strcpy(club.weekly_meeting_day, "Tuesday");
                     break;
+                }
                 case '3':
+                {
                     strcpy(club.weekly_meeting_day, "Wednesday");
                     break;
+                }
                 case '4':
+                {
                     strcpy(club.weekly_meeting_day, "Thursday");
                     break;
+                }
                 case '5':
+                {
                     strcpy(club.weekly_meeting_day, "Friday");
                     break;
+                }
                 }
             }
             strcpy(clubs[club_pos].weekly_meeting_day, club.weekly_meeting_day);
@@ -869,8 +917,10 @@ void update_club_info(struct Club club, int club_pos)
             print_greeting();
             printf("Successfully updated the weekly meeting day of '%s' from %s to %s. ", club.name, old_weekly_meeting_day, club.weekly_meeting_day);
             break;
+        }
 
         case '3':
+        {
             print_greeting();
 
             printf("After typing the new description for '%s' (max %d characters), press [Enter] to confirm.\n\n", club.name, MAX_CLUB_DESCRIPTION_LENGTH);
@@ -889,8 +939,10 @@ void update_club_info(struct Club club, int club_pos)
             print_greeting();
             printf("Successfully updated the description of '%s'. ", club.name);
             break;
+        }
 
         case '4':
+        {
             char prev_student_reps[2048] = "";
             for (int i = 0; i < student_count; i++)
             {
@@ -996,8 +1048,10 @@ void update_club_info(struct Club club, int club_pos)
             print_greeting();
             printf("The student representatives of '%s' have been updated to %s (previously %s). ", club.name, new_student_reps, prev_student_reps);
             break;
+        }
 
         case '5':
+        {
             while (true)
             {
                 print_greeting();
@@ -1034,6 +1088,7 @@ void update_club_info(struct Club club, int club_pos)
             print_greeting();
             printf("The password of club '%s' has been successfully updated. ", club.name);
             break;
+        }
         }
 
         if (choice == '1' || choice == '2' || choice == '3' || choice == '4' || choice == '5')
@@ -1309,21 +1364,26 @@ struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
         choice = tolower(_getch());
         switch (choice)
         {
-        case 's':                                     // An input of "s" moves the cursor down the list of attendees.
+        case 's': // An input of "s" moves the cursor down the list of attendees.
+        {
             if (cursor_position < attendee_count - 1) // Ensures that the cursor does not move past the last attendee
             {
                 cursor_position++;
             }
             break;
+        }
 
-        case 'w':                    // An input of "w" moves the cursor up the list of attendees.
+        case 'w': // An input of "w" moves the cursor up the list of attendees.
+        {
             if (cursor_position > 0) // Ensures that the cursor does not move past the first attendee.
             {
                 cursor_position--;
             }
             break;
+        }
 
         case 'p':
+        {
             if (selected_member_is_present) // Ensures that the selected member is not double marked as present
             {
                 continue;
@@ -1336,8 +1396,10 @@ struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
             delete_node_by_data(&meeting.absent_member_ids, selected_member.id);
             meeting.absent_member_count--;
             break;
+        }
 
         case 'a':
+        {
             if (!selected_member_is_present) // Ensures that the selected member is not double marked as absent
             {
                 continue;
@@ -1350,6 +1412,7 @@ struct Meeting edit_attendance_sheet(struct Club club, struct Meeting meeting)
             delete_node_by_data(&meeting.present_member_ids, selected_member.id);
             meeting.present_member_count--;
             break;
+        }
         }
     }
 
@@ -1471,6 +1534,7 @@ void list_club_meetings(int club_pos)
                 switch (j) // Formats the cell contents based on the type of data (indicated by j, that is the column)
                 {
                 case 0:
+                {
                     int meeting_id_length = snprintf(NULL, 0, "%d", meeting.id);
                     char *stringified_meeting_id = malloc((meeting_id_length + 1) * sizeof(char));
                     if (stringified_meeting_id == NULL)
@@ -1481,20 +1545,28 @@ void list_club_meetings(int club_pos)
                     strcpy(contents[i][j], stringified_meeting_id); // strcpy accepts a string input, not an integer input, so meeting.id must be converted to a string.
                     free(stringified_meeting_id);
                     break;
+                }
 
                 case 1:
+                {
                     strcpy(contents[i][j], format_time_t(meeting.convened_at));
                     break;
+                }
 
                 case 2:
+                {
                     strcpy(contents[i][j], meeting.topic);
                     break;
+                }
 
                 case 3:
+                {
                     strcpy(contents[i][j], format_time_t(meeting.adjourned_at));
                     break;
+                }
 
                 case 4:
+                {
                     double meeting_attendance_rate;
                     int total_attendees = meeting.present_member_count + meeting.absent_member_count;
                     if (total_attendees == 0)
@@ -1516,6 +1588,7 @@ void list_club_meetings(int club_pos)
                     strcpy(contents[i][j], stringified_attendance_rate);
                     free(stringified_attendance_rate);
                     break;
+                }
                 }
             }
         }
